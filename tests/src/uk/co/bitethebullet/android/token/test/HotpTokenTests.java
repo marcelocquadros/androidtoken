@@ -29,7 +29,7 @@ public class HotpTokenTests extends TestCase {
 	private final static String SEED = "3132333435363738393031323334353637383930";
 	
 	public void testOtpGeneration(){
-		HotpToken token = new HotpToken("mark", "123456789", SEED, 0);
+		HotpToken token = new HotpToken("mark", "123456789", SEED, 0, 6);
 		
 		String otp = token.GenerateOtp();
 		
@@ -37,7 +37,7 @@ public class HotpTokenTests extends TestCase {
 	}
 	
 	public void testOtpGeneration2(){
-		HotpToken token = new HotpToken("mark", "123456789", SEED, 1);
+		HotpToken token = new HotpToken("mark", "123456789", SEED, 1, 6);
 		
 		String otp = token.GenerateOtp();
 		
