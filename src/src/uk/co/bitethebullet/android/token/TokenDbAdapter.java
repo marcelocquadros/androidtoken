@@ -19,11 +19,14 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.util.Log;
 
 /**
  * Performs the CRUD database actions for the Android Token application
@@ -38,7 +41,7 @@ public class TokenDbAdapter {
 	public static final String KEY_TOKEN_TYPE = "tokentype";
 	
 	public static final String KEY_PIN_ROWID = "_id";
-	public static final String KEY_PIN_HASH = "pinHash";
+	public static final String KEY_PIN_HASH = "pinhash";
 	
 	//const define the different token type
 	public static final int TOKEN_TYPE_EVENT = 1;
@@ -55,6 +58,20 @@ public class TokenDbAdapter {
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     private final Context mContext;
+    
+    private static final String DATABASE_CREATE = 
+    			"create table token (_id integer primary key autoincrement,"
+                + " name text not null,"
+                + " serial text,"
+                + " seed text,"
+                + " eventcount integer,"
+                + " tokentype integer);"
+                + " create table pin(_id integer primary key autoincrement,"
+                + " pinhash text);";
+    
+    private static final String DATABASE_DROP = "DROP TABLE IF EXISTS token;"
+    												+ "DROP TABLE IF EXISTS pin;";
+    			
 	
     
     private static class DatabaseHelper extends SQLiteOpenHelper{
@@ -65,14 +82,19 @@ public class TokenDbAdapter {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			// TODO Auto-generated method stub
-			
+			db.execSQL(DATABASE_CREATE);			
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// TODO Auto-generated method stub
 			
+			//TODO: MM ideally we should change this so upgrading doesnt lose
+			//the token data
+			
+			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
+                    + newVersion + ", which will destroy all old data");
+			db.execSQL(DATABASE_DROP);
+			onCreate(db);
 		}    	
     }
     
@@ -89,4 +111,103 @@ public class TokenDbAdapter {
     public void close(){
     	mDbHelper.close();
     }
+    
+    
+    
+    
+    // Data Access Methods
+    ////////////////////////////////
+    
+    
+    //TOKEN TABLE
+    public long createToken(String name, String serial, String seed, int tokenType){
+    	ContentValues values = new ContentValues();
+    	values.put(KEY_TOKEN_NAME, name);
+    	values.put(KEY_TOKEN_SERIAL, serial);
+    	values.put(KEY_TOKEN_SEED, seed);
+    	values.put(KEY_TOKEN_TYPE, tokenType);
+    	
+    	return mDb.insert(DATABASE_TOKEN_TABLE, null, values);
+    }
+    
+    public boolean deleteToken(long tokenId){
+    	return mDb.delete(DATABASE_TOKEN_TABLE, KEY_TOKEN_ROWID + "=" + tokenId, null) > 0;
+    }
+    
+    public boolean renameToken(long tokenId, String name){
+    	ContentValues values = new 	ContentValues();
+    	values.put(KEY_TOKEN_NAME, name);
+    	
+    	return mDb.update(DATABASE_TOKEN_TABLE, values, KEY_TOKEN_ROWID + "=" + tokenId, null) > 0;
+    }
+    
+    public void incrementTokenCount(long tokenId){
+    	mDb.execSQL("UPDATE token SET eventcount = eventcount + 1 WHERE _id = " + tokenId);
+    }
+    
+    public Cursor fetchToken(long tokenId){
+    	Cursor c = mDb.query(DATABASE_TOKEN_TABLE,
+    						 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, KEY_TOKEN_COUNT, KEY_TOKEN_TYPE}, 
+    						 KEY_TOKEN_ROWID + "=" + tokenId, 
+    						 null,
+    						 null, 
+    						 null, 
+    						 null);
+    	
+    	if(c != null)
+    		c.moveToFirst();
+    	
+    	return c;
+    }
+    
+    public Cursor fetchAllTokens(){
+    	return mDb.query(DATABASE_TOKEN_TABLE, 
+    					 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, KEY_TOKEN_COUNT, KEY_TOKEN_TYPE}, 
+    				     null, 
+    				     null, 
+    				     null, 
+    				     null, 
+    				     KEY_TOKEN_NAME);
+    }
+    
+    
+    //PIN TABLE
+    public boolean createOrUpdatePin(String pinHash){
+    	
+    	boolean result = false;
+    	
+    	ContentValues values = new 	ContentValues();
+    	values.put(KEY_PIN_HASH, pinHash);
+    	
+    	if(fetchPin() == null){
+    		//no pin set, insert new row
+    		result = mDb.insert(DATABASE_PIN_TABLE, null, values) > 0;    		
+    	}else{
+    		//pin already set update existin
+    		result = mDb.update(DATABASE_PIN_TABLE, values, null, null) == 1;
+    	}
+    	
+    	return result;
+    }
+    
+    public void deletePin(){
+    	mDb.delete(DATABASE_PIN_TABLE, null, null);
+    }
+    
+    public Cursor fetchPin(){
+    	Cursor c = mDb.query(DATABASE_PIN_TABLE,
+    					     new String[]{KEY_PIN_HASH}, 
+    					     null, 
+    					     null, 
+    					     null, 
+    					     null, 
+    					     null,
+    					     "1");
+    	
+    	if(c != null)
+    		c.moveToFirst();
+    	
+    	return c;
+    }
+    
 }
