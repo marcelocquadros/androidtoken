@@ -19,7 +19,6 @@
  */
 package uk.co.bitethebullet.android.token;
 
-import android.content.Context;
 import android.database.Cursor;
 
 public class TokenFactory {
@@ -30,7 +29,46 @@ public class TokenFactory {
 	 * @param ctx
 	 * @return
 	 */
-	public static IToken CreateToken(Cursor c, Context ctx){
-		return null;
+	public static IToken CreateToken(Cursor c){
+		
+		if(c == null){
+			return null;
+		}
+		
+		int tokenType = c.getInt(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE));
+		
+		switch(tokenType){
+		
+		case TokenDbAdapter.TOKEN_TYPE_EVENT:
+			return CreateHotpToken(c);
+			
+		case TokenDbAdapter.TOKEN_TYPE_TIME:
+			return CreateTotpToken(c);
+		
+		default:
+			return null;
+		}		
+	}
+	
+	private static IToken CreateHotpToken(Cursor c){
+		HotpToken token = new HotpToken(
+								c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_NAME)), 
+								c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL)), 
+								c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SEED)), 
+								c.getLong(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_COUNT)), 
+								c.getInt(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_OTP_LENGTH)));
+		
+		return token;
+	}
+	
+	private static IToken CreateTotpToken(Cursor c){
+		TotpToken token = new TotpToken(
+										c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_NAME)), 
+										c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL)), 
+										c.getString(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SEED)), 
+										c.getInt(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TIME_STEP)), 
+										c.getInt(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_OTP_LENGTH)));
+		
+		return token;
 	}
 }

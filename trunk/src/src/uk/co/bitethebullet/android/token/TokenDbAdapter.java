@@ -39,6 +39,8 @@ public class TokenDbAdapter {
 	public static final String KEY_TOKEN_SEED = "seed";
 	public static final String KEY_TOKEN_COUNT = "eventcount";
 	public static final String KEY_TOKEN_TYPE = "tokentype";
+	public static final String KEY_TOKEN_OTP_LENGTH = "otplength";
+	public static final String KEY_TOKEN_TIME_STEP = "timestep";
 	
 	public static final String KEY_PIN_ROWID = "_id";
 	public static final String KEY_PIN_HASH = "pinhash";
@@ -65,7 +67,9 @@ public class TokenDbAdapter {
                 + " serial text,"
                 + " seed text,"
                 + " eventcount integer,"
-                + " tokentype integer);"
+                + " tokentype integer,"
+                + " otplength integer,"
+                + " timestep integer);"
                 + " create table pin(_id integer primary key autoincrement,"
                 + " pinhash text);";
     
@@ -120,12 +124,14 @@ public class TokenDbAdapter {
     
     
     //TOKEN TABLE
-    public long createToken(String name, String serial, String seed, int tokenType){
+    public long createToken(String name, String serial, String seed, int tokenType, int otpLength, int timeStep){
     	ContentValues values = new ContentValues();
     	values.put(KEY_TOKEN_NAME, name);
     	values.put(KEY_TOKEN_SERIAL, serial);
     	values.put(KEY_TOKEN_SEED, seed);
     	values.put(KEY_TOKEN_TYPE, tokenType);
+    	values.put(KEY_TOKEN_OTP_LENGTH, otpLength);
+    	values.put(KEY_TOKEN_TIME_STEP, timeStep);
     	
     	return mDb.insert(DATABASE_TOKEN_TABLE, null, values);
     }
@@ -147,7 +153,9 @@ public class TokenDbAdapter {
     
     public Cursor fetchToken(long tokenId){
     	Cursor c = mDb.query(DATABASE_TOKEN_TABLE,
-    						 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, KEY_TOKEN_COUNT, KEY_TOKEN_TYPE}, 
+    						 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
+    										KEY_TOKEN_COUNT, KEY_TOKEN_TYPE, KEY_TOKEN_OTP_LENGTH, 
+    										KEY_TOKEN_TIME_STEP}, 
     						 KEY_TOKEN_ROWID + "=" + tokenId, 
     						 null,
     						 null, 
@@ -162,7 +170,9 @@ public class TokenDbAdapter {
     
     public Cursor fetchAllTokens(){
     	return mDb.query(DATABASE_TOKEN_TABLE, 
-    					 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, KEY_TOKEN_COUNT, KEY_TOKEN_TYPE}, 
+		    			new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
+										KEY_TOKEN_COUNT, KEY_TOKEN_TYPE, KEY_TOKEN_OTP_LENGTH, 
+										KEY_TOKEN_TIME_STEP}, 
     				     null, 
     				     null, 
     				     null, 

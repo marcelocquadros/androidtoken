@@ -19,6 +19,9 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 
 /**
  * TOTP Token
@@ -29,14 +32,20 @@ package uk.co.bitethebullet.android.token;
  */
 public class TotpToken extends HotpToken {
 
-	public TotpToken(String name, String serial, String seed){
-		super(name, serial, seed, 0);
+	private int mTimeStep;
+	
+	public TotpToken(String name, String serial, String seed, int timeStep, int otpLength){
+		super(name, serial, seed, 0, otpLength);
+		
+		mTimeStep = timeStep;
 	}
 
 	@Override
 	public String GenerateOtp() {
 		
-		//todo: MM calculate the movingcounter using the time
+		//calculate the movingcounter using the time
+		long time = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis()/1000;		
+		super.setEventCount(time/mTimeStep);
 		
 		return super.GenerateOtp();
 	}

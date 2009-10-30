@@ -40,21 +40,20 @@ public class HotpToken implements IToken {
 	private String mSerial;
 	private String mSeed;
 	private long mEventCount;
-	
-	//TODO: MM need to make this parameter and pick it up from the db
-	private static final int OTP_LENGTH = 6;
-	
+	private int mOtpLength;
+		
 	
 	private static final int[] DIGITS_POWER
     // 0 1  2   3    4     5      6       7        8
     = {1,10,100,1000,10000,100000,1000000,10000000,100000000};
 
 	
-	public HotpToken(String name, String serial, String seed, long eventCount){
+	public HotpToken(String name, String serial, String seed, long eventCount, int otpLength){
 		mName = name;
 		mSerial = serial;
 		mSeed = seed;
 		mEventCount = eventCount;
+		mOtpLength = otpLength;
 	}
 	
 	
@@ -73,7 +72,7 @@ public class HotpToken implements IToken {
 	}
 
 
-	public void setmSerial(String serial) {
+	public void setSerial(String serial) {
 		this.mSerial = serial;
 	}
 
@@ -83,7 +82,7 @@ public class HotpToken implements IToken {
 	}
 
 
-	protected void setmSeed(String seed) {
+	protected void setSeed(String seed) {
 		this.mSeed = seed;
 	}
 
@@ -93,8 +92,18 @@ public class HotpToken implements IToken {
 	}
 
 
-	protected void setmEventCount(long eventCount) {
+	protected void setEventCount(long eventCount) {
 		this.mEventCount = eventCount;
+	}
+
+
+	public int getOtpLength() {
+		return mOtpLength;
+	}
+
+
+	public void setOtpLength(int otpLength) {
+		this.mOtpLength = otpLength;
 	}
 
 
@@ -116,11 +125,11 @@ public class HotpToken implements IToken {
 						|((hash[offset + 2] & 0xff) << 8)
 						|(hash[offset + 3] & 0xff);
 		
-		int otp = otpBinary % DIGITS_POWER[OTP_LENGTH];
+		int otp = otpBinary % DIGITS_POWER[mOtpLength];
 		String result = Integer.toString(otp);
 		
 		
-		while(result.length() < OTP_LENGTH){
+		while(result.length() < mOtpLength){
 			result = "0" + result;
 		}
 		
