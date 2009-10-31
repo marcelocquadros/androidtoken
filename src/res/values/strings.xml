@@ -2,4 +2,7 @@
 <resources>
     <string name="noTokens">No Tokens Defined</string>
     <string name="app_name">AndroidToken</string>
+<string name="menu_add">Add Token</string>
+<string name="menu_pin_change">Change PIN</string>
+<string name="menu_pin_remove">Remove Pin</string>
 </resources>
