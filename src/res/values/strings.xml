@@ -5,4 +5,13 @@
 <string name="menu_add">Add Token</string>
 <string name="menu_pin_change">Change PIN</string>
 <string name="menu_pin_remove">Remove Pin</string>
+<string name="tokenType">Token Type</string>
+<string name="tokenName">Name</string>
+<string name="tokenSerial">Serial No</string>
+<string name="tokenOtp">OTP Length</string>
+<string name="tokenTimeStep">Time Step</string>
+<string name="tokenAddStep2">Next &gt;</string>
+<string name="tokenTypeSpinnerPrompt">Select Token Type</string>
+<string name="tokenOtpSpinnerPrompt">Select OTP Length</string>
+<string name="tokenTimeStepSpinnerPrompt">Select Time Step</string>
 </resources>

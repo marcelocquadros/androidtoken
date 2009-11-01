@@ -20,6 +20,7 @@
 package uk.co.bitethebullet.android.token;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +37,8 @@ import android.widget.ListView;
  * http://code.google.com/p/androidtoken/
  */
 public class TokenList extends ListActivity {
+	
+	private static final int ACTIVITY_ADD_TOKEN = 0;
 	
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
@@ -82,8 +85,8 @@ public class TokenList extends ListActivity {
 	 * Starts the process of creating a new token in the application
 	 */
 	private void createToken() {
-		// TODO Auto-generated method stub
-		
+		Intent intent = new Intent(this, TokenAdd.class);
+		startActivityForResult(intent, ACTIVITY_ADD_TOKEN);		
 	}
 
 	@Override
