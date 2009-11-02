@@ -21,7 +21,10 @@ package uk.co.bitethebullet.android.token;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -165,6 +168,52 @@ public class HotpToken implements IToken {
 			
 		}catch(GeneralSecurityException ex){
 			throw new UndeclaredThrowableException(ex);
+		}
+	}
+	
+	/**
+	 * Generates a new seed value for a token
+	 * the returned string will contain a randomly generated
+	 * hex value
+	 * @param length - defines the length of the new seed this should be either 128 or 160
+	 * @return
+	 */
+	public static String generateNewSeed(int length){
+		
+		String salt = "";
+		long ticks = Calendar.getInstance(TimeZone.getTimeZone("GMT")).getTimeInMillis();		
+		salt = salt + ticks;
+		
+		byte[] byteToHash = salt.getBytes();
+		
+		MessageDigest md;
+		
+		try{		
+			if(length == 128){
+				//128 long
+				md = MessageDigest.getInstance("MD5");			
+			}else{
+				//160 long
+				md = MessageDigest.getInstance("SHA1");
+			}
+			
+			md.reset();
+			md.update(byteToHash);
+			
+			byte[] digest = md.digest();
+			
+			//convert to hex string
+			
+			StringBuffer buffer = new StringBuffer();
+			
+			for(int i =0; i < digest.length; i++){
+				buffer.append(Integer.toHexString(0xff & digest[i]));
+			}
+			
+			return buffer.toString();
+			
+		}catch(NoSuchAlgorithmException ex){
+			return null;		
 		}
 	}
 
