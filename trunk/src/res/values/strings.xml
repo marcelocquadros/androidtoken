@@ -10,8 +10,20 @@
 <string name="tokenSerial">Serial No</string>
 <string name="tokenOtp">OTP Length</string>
 <string name="tokenTimeStep">Time Step</string>
-<string name="tokenAddStep2">Next &gt;</string>
+<string name="btnAddStep2">Next &gt;</string>
 <string name="tokenTypeSpinnerPrompt">Select Token Type</string>
 <string name="tokenOtpSpinnerPrompt">Select OTP Length</string>
 <string name="tokenTimeStepSpinnerPrompt">Select Time Step</string>
+<string name="tokenSeedMethod">Token Seed Method</string>
+<string name="rbSeedManual">Direct Seed Entry</string>
+<string name="rbSeedRandom">Generate Random Seed</string>
+<string name="rbSeedPassword">Seed from Password</string>
+<string name="tokenSeed">Token Seed Value</string>
+<string name="tokenAddComplete">Complete</string>
+<string name="dialogPositive">Ok</string>
+<string name="tokenAddDialogNoName">Token Name is Required</string>
+<string name="tokenAddDialogNoSerial">Token Serial is Required</string>
+<string name="tokenAddDialogNoSeed">Token Seed is Required</string>
+<string name="tokenAddDialogInvalidSeed">Token Seed is Invalid</string>
+<string name="tokenrowtextserialcaption">S/N</string>
 </resources>

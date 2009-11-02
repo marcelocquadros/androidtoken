@@ -21,11 +21,13 @@ package uk.co.bitethebullet.android.token;
 
 import android.app.ListActivity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 /**
  * Main entry point into Android Token application
@@ -49,7 +51,31 @@ public class TokenList extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        fillData();
     }
+
+	private void fillData() {
+		TokenDbAdapter db = new TokenDbAdapter(this);
+		db.open();
+		
+		Cursor c = db.fetchAllTokens();
+		startManagingCursor(c);
+		
+		String[] from = new String[] {TokenDbAdapter.KEY_TOKEN_NAME, TokenDbAdapter.KEY_TOKEN_SERIAL};
+		int[] to = new int[] {R.id.tokenrowtextname, R.id.tokenrowtextserial};
+		
+		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.token_list_row, c, from, to);
+		setListAdapter(adapter);		
+		
+		db.close();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		fillData();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

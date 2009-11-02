@@ -46,8 +46,8 @@ public class TokenDbAdapter {
 	public static final String KEY_PIN_HASH = "pinhash";
 	
 	//const define the different token type
-	public static final int TOKEN_TYPE_EVENT = 1;
-	public static final int TOKEN_TYPE_TIME = 2;
+	public static final int TOKEN_TYPE_EVENT = 0;
+	public static final int TOKEN_TYPE_TIME = 1;
 	
 	public static final String TAG = "TokenDbAdapter";
 	
@@ -132,6 +132,7 @@ public class TokenDbAdapter {
     	values.put(KEY_TOKEN_TYPE, tokenType);
     	values.put(KEY_TOKEN_OTP_LENGTH, otpLength);
     	values.put(KEY_TOKEN_TIME_STEP, timeStep);
+    	values.put(KEY_TOKEN_COUNT, 0);
     	
     	return mDb.insert(DATABASE_TOKEN_TABLE, null, values);
     }
@@ -153,7 +154,7 @@ public class TokenDbAdapter {
     
     public Cursor fetchToken(long tokenId){
     	Cursor c = mDb.query(DATABASE_TOKEN_TABLE,
-    						 new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
+    						 new String[] {KEY_TOKEN_ROWID, KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
     										KEY_TOKEN_COUNT, KEY_TOKEN_TYPE, KEY_TOKEN_OTP_LENGTH, 
     										KEY_TOKEN_TIME_STEP}, 
     						 KEY_TOKEN_ROWID + "=" + tokenId, 
@@ -170,7 +171,7 @@ public class TokenDbAdapter {
     
     public Cursor fetchAllTokens(){
     	return mDb.query(DATABASE_TOKEN_TABLE, 
-		    			new String[] {KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
+		    			new String[] {KEY_TOKEN_ROWID, KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
 										KEY_TOKEN_COUNT, KEY_TOKEN_TYPE, KEY_TOKEN_OTP_LENGTH, 
 										KEY_TOKEN_TIME_STEP}, 
     				     null, 
