@@ -43,4 +43,22 @@ public class HotpTokenTests extends TestCase {
 		
 		Assert.assertEquals("287082", otp);
 	}
+	
+	public void testSeed128(){
+		
+		for(int i = 0; i < 100; i++){
+		
+			String seed = HotpToken.generateNewSeed(128);
+			Assert.assertEquals(32, seed.length());			
+		}
+	}
+	
+	
+	public void testSeed160(){
+		for(int i = 0; i < 100; i++){
+			
+			String seed = HotpToken.generateNewSeed(160);
+			Assert.assertEquals(40, seed.length());			
+		}
+	}
 }

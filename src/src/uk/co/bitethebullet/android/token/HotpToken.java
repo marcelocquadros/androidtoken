@@ -202,19 +202,26 @@ public class HotpToken implements IToken {
 			
 			byte[] digest = md.digest();
 			
-			//convert to hex string
+			//convert to hex string			
 			
-			StringBuffer buffer = new StringBuffer();
-			
-			for(int i =0; i < digest.length; i++){
-				buffer.append(Integer.toHexString(0xff & digest[i]));
-			}
-			
-			return buffer.toString();
+			return byteArrayToHexString(digest);
 			
 		}catch(NoSuchAlgorithmException ex){
 			return null;		
 		}
+	}
+
+
+	public static String byteArrayToHexString(byte[] digest) {
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		for(int i =0; i < digest.length; i++){
+			buffer.append(( "00" + Integer.toHexString(0xff & digest[i])).substring(1, 3));
+
+		}
+		
+		return buffer.toString();
 	}
 
 }

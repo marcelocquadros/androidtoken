@@ -41,6 +41,7 @@ import android.widget.SimpleCursorAdapter;
 public class TokenList extends ListActivity {
 	
 	private static final int ACTIVITY_ADD_TOKEN = 0;
+	private static final int ACTIVITY_CHANGE_PIN = 1;
 	
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
@@ -96,7 +97,7 @@ public class TokenList extends ListActivity {
 			return true;
 			
 		case MENU_PIN_CHANGE_ID:
-			//TODO: MM to complete
+			changePin();
 			return true;
 			
 		case MENU_PIN_REMOVE_ID:
@@ -105,6 +106,11 @@ public class TokenList extends ListActivity {
 		}
 		
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+	private void changePin() {
+		Intent i = new Intent(this,	 PinChange.class);
+		startActivityForResult(i, ACTIVITY_CHANGE_PIN);
 	}
 
 	/**

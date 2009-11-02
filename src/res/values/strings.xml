@@ -25,5 +25,9 @@
 <string name="tokenAddDialogNoSerial">Token Serial is Required</string>
 <string name="tokenAddDialogNoSeed">Token Seed is Required</string>
 <string name="tokenAddDialogInvalidSeed">Token Seed is Invalid</string>
-<string name="tokenrowtextserialcaption">S/N</string>
+<string name="tokenrowtextserialcaption">S/N:</string>
+<string name="pinChangeExistingPin">Enter Existing PIN</string>
+<string name="pinChangeNew1">New PIN</string>
+<string name="pinChangeNew2">Confirm PIN</string>
+<string name="pinChangeSubmit">Save</string>
 </resources>
