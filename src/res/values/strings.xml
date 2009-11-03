@@ -30,4 +30,9 @@
 <string name="pinChangeNew1">New PIN</string>
 <string name="pinChangeNew2">Confirm PIN</string>
 <string name="pinChangeSubmit">Save</string>
+<string name="pinAlertInvalidPin">Existing PIN is invalid</string>
+<string name="pinAlertNewPinsDifferent">The new PINs are not the same</string>
+<string name="pinAlertNewPinBlank">New PIN is required</string>
+<string name="pinRemoveExistingPin">Enter Existing PIN</string>
+<string name="pinRemoveSubmit">Remove</string>
 </resources>

@@ -14,7 +14,11 @@ public class PinManager {
 		TokenDbAdapter db = new TokenDbAdapter(c);
 		db.open();
 		
-		Boolean hasPin = db.fetchPin() != null;
+		Cursor cursor = db.fetchPin();
+		
+		Boolean hasPin = cursor.getCount() > 0;
+		
+		cursor.close();
 		db.close();
 		
 		return hasPin;
@@ -27,7 +31,7 @@ public class PinManager {
 
 		Boolean isValid = false;
 		String userPin = createPinHash(pin);
-		Cursor cursor = db.fetchAllTokens();
+		Cursor cursor = db.fetchPin();
 		
 		if(cursor != null){
 			String dbPin = cursor.getString(cursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_PIN_HASH));
@@ -41,7 +45,19 @@ public class PinManager {
 	}
 	
 	public static void storePin(Context c, String pin){
-		//TODO complete me
+		TokenDbAdapter db =  new TokenDbAdapter(c);
+		db.open();		
+		db.createOrUpdatePin(createPinHash(pin));		
+		db.close();
+	}
+	
+	public static void removePin(Context c){
+		TokenDbAdapter db = new TokenDbAdapter(c);
+		db.open();
+		
+		db.deletePin();
+		
+		db.close();
 	}
 	
 	private static String createPinHash(String pin) {

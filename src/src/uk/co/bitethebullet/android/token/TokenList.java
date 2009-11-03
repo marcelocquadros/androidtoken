@@ -42,6 +42,7 @@ public class TokenList extends ListActivity {
 	
 	private static final int ACTIVITY_ADD_TOKEN = 0;
 	private static final int ACTIVITY_CHANGE_PIN = 1;
+	private static final int ACTIVITY_REMOVE_PIN = 2;
 	
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
@@ -101,11 +102,16 @@ public class TokenList extends ListActivity {
 			return true;
 			
 		case MENU_PIN_REMOVE_ID:
-			//TODO: MM to complete
+			removePin();
 			return true;
 		}
 		
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+	private void removePin() {
+		Intent i = new Intent(this, PinRemove.class);
+		startActivityForResult(i, ACTIVITY_REMOVE_PIN);
 	}
 
 	private void changePin() {
