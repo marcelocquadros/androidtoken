@@ -35,4 +35,5 @@
 <string name="pinAlertNewPinBlank">New PIN is required</string>
 <string name="pinRemoveExistingPin">Enter Existing PIN</string>
 <string name="pinRemoveSubmit">Remove</string>
+<string name="mainLogin">Login</string>
 </resources>
