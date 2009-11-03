@@ -41,6 +41,7 @@ public class TokenDbAdapter {
 	public static final String KEY_TOKEN_TYPE = "tokentype";
 	public static final String KEY_TOKEN_OTP_LENGTH = "otplength";
 	public static final String KEY_TOKEN_TIME_STEP = "timestep";
+	public static final String KEY_TOKEN_NAME_SORT = "namesort";
 	
 	public static final String KEY_PIN_ROWID = "_id";
 	public static final String KEY_PIN_HASH = "pinhash";
@@ -52,7 +53,7 @@ public class TokenDbAdapter {
 	public static final String TAG = "TokenDbAdapter";
 	
 	//const database tables, version
-	private static final String DATABASE_NAME = "androidtoken";
+	private static final String DATABASE_NAME = "androidtoken.db";
     private static final String DATABASE_TOKEN_TABLE = "token";
     private static final String DATABASE_PIN_TABLE = "pin";
     private static final int DATABASE_VERSION = 1;
@@ -61,7 +62,7 @@ public class TokenDbAdapter {
     private SQLiteDatabase mDb;
     private final Context mContext;
     
-    private static final String DATABASE_CREATE = 
+    private static final String DATABASE_CREATE_TOKEN = 
     			"create table token (_id integer primary key autoincrement,"
                 + " name text not null,"
                 + " serial text,"
@@ -69,12 +70,15 @@ public class TokenDbAdapter {
                 + " eventcount integer,"
                 + " tokentype integer,"
                 + " otplength integer,"
-                + " timestep integer);"
-                + " create table pin(_id integer primary key autoincrement,"
+                + " timestep integer,"
+                + " namesort text);";
+    
+    private static final String DATABASE_CREATE_PIN =
+                "create table pin(_id integer primary key autoincrement,"
                 + " pinhash text);";
     
-    private static final String DATABASE_DROP = "DROP TABLE IF EXISTS token;"
-    												+ "DROP TABLE IF EXISTS pin;";
+    private static final String DATABASE_DROP_TOKEN = "DROP TABLE IF EXISTS token;";
+    private static final String DATABASE_DROP_PIN = "DROP TABLE IF EXISTS pin;";
     			
 	
     
@@ -86,7 +90,8 @@ public class TokenDbAdapter {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			db.execSQL(DATABASE_CREATE);			
+			db.execSQL(DATABASE_CREATE_TOKEN);
+			db.execSQL(DATABASE_CREATE_PIN);
 		}
 
 		@Override
@@ -97,7 +102,8 @@ public class TokenDbAdapter {
 			
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
-			db.execSQL(DATABASE_DROP);
+			db.execSQL(DATABASE_DROP_TOKEN);
+			db.execSQL(DATABASE_DROP_PIN);
 			onCreate(db);
 		}    	
     }
@@ -133,6 +139,7 @@ public class TokenDbAdapter {
     	values.put(KEY_TOKEN_OTP_LENGTH, otpLength);
     	values.put(KEY_TOKEN_TIME_STEP, timeStep);
     	values.put(KEY_TOKEN_COUNT, 0);
+    	values.put(KEY_TOKEN_NAME_SORT, name.toLowerCase());
     	
     	return mDb.insert(DATABASE_TOKEN_TABLE, null, values);
     }
@@ -178,7 +185,7 @@ public class TokenDbAdapter {
     				     null, 
     				     null, 
     				     null, 
-    				     KEY_TOKEN_NAME);
+    				     KEY_TOKEN_NAME_SORT + " ASC");
     }
     
     
@@ -190,13 +197,17 @@ public class TokenDbAdapter {
     	ContentValues values = new 	ContentValues();
     	values.put(KEY_PIN_HASH, pinHash);
     	
-    	if(fetchPin() == null){
+    	Cursor c = fetchPin();
+    	
+    	if(c.getCount() == 0){
     		//no pin set, insert new row
     		result = mDb.insert(DATABASE_PIN_TABLE, null, values) > 0;    		
     	}else{
-    		//pin already set update existin
-    		result = mDb.update(DATABASE_PIN_TABLE, values, null, null) == 1;
+    		//pin already set update existing
+    		result = mDb.update(DATABASE_PIN_TABLE, values, null, null) > 0;
     	}
+    	
+    	c.close();
     	
     	return result;
     }

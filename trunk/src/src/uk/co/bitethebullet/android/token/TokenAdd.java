@@ -10,12 +10,15 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 public class TokenAdd extends Activity {
 
@@ -46,9 +49,37 @@ public class TokenAdd extends Activity {
 		rbPassword.setOnClickListener(radioSeed);
 		
 		Button btnComplete = (Button)findViewById(R.id.tokenAddComplete);
-		btnComplete.setOnClickListener(buttonComplete);		
+		btnComplete.setOnClickListener(buttonComplete);	
+		
+		Spinner tokenType = (Spinner)findViewById(R.id.tokenTypeSpinner);
+		tokenType.setOnItemSelectedListener(tokenTypeSelected);
 	}
 	
+	
+	private OnItemSelectedListener tokenTypeSelected = new OnItemSelectedListener() {
+
+		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+
+			TextView caption = (TextView)findViewById(R.id.tokenTimeStep);
+			Spinner spinner = (Spinner)findViewById(R.id.tokenTimeStepSpinner);
+			
+			if(arg2 == 0){
+				caption.setVisibility(View.INVISIBLE);
+				spinner.setVisibility(View.INVISIBLE);
+			}else{
+				caption.setVisibility(View.VISIBLE);
+				spinner.setVisibility(View.VISIBLE);
+			}
+			
+		}
+
+		public void onNothingSelected(AdapterView<?> arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	};
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -179,6 +210,7 @@ public class TokenAdd extends Activity {
 				}				
 			}
 			
+			//TODO password seed
 			
 			if(isValid){
 				//store token in db

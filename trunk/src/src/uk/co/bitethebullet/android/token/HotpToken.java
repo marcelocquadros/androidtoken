@@ -217,7 +217,12 @@ public class HotpToken implements IToken {
 		StringBuffer buffer = new StringBuffer();
 		
 		for(int i =0; i < digest.length; i++){
-			buffer.append(( "00" + Integer.toHexString(0xff & digest[i])).substring(1, 3));
+			String hex = Integer.toHexString(0xff & digest[i]);
+			
+			if(hex.length() == 1)
+				buffer.append("0");
+			
+			buffer.append(hex);
 
 		}
 		
