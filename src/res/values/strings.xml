@@ -22,6 +22,7 @@
 <string name="tokenSeed">Token Seed Value</string>
 <string name="tokenAddComplete">Complete</string>
 <string name="dialogPositive">Ok</string>
+<string name="dialogNegative">Cancel</string>
 <string name="tokenAddDialogNoName">Token Name is Required</string>
 <string name="tokenAddDialogNoSerial">Token Serial is Required</string>
 <string name="tokenAddDialogNoSeed">Token Seed is Required</string>
