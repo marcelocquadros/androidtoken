@@ -19,6 +19,10 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -35,7 +39,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
+import android.widget.TextView;
+import android.widget.ImageView;
 
 /**
  * Main entry point into Android Token application
@@ -55,12 +60,17 @@ public class TokenList extends ListActivity {
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
 	private static final int MENU_PIN_REMOVE_ID = Menu.FIRST + 2;
+	private static final int MENU_DELETE_TOKEN_ID = Menu.FIRST + 3;
 	
 	private static final int DIALOG_INVALID_PIN = 0;
+	private static final int DIALOG_OTP = 1;
+	private static final int DIALOG_DELETE_TOKEN = 2;
 	
 	private static final String KEY_HAS_PASSED_PIN = "pinValid";
 	
 	private Boolean mHasPassedPin = false;
+	private Long mSelectedTokenId;
+	private Timer mTimer = null;
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
@@ -152,12 +162,84 @@ public class TokenList extends ListActivity {
 			d = createAlertDialog(R.string.pinAlertInvalidPin);
 			break;
 			
+		case DIALOG_OTP:
+			d = new Dialog(this);
+
+			d.setContentView(R.layout.otpdialog);
+			d.setTitle(R.string.otpDialogTitle);
+
+			ImageView image = (ImageView) d.findViewById(R.id.otpDialogImage);
+			image.setImageResource(R.drawable.android50);
+			d.setOnDismissListener(dismissOtpDialog);
+			break;
+			
+		case DIALOG_DELETE_TOKEN:
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			
+			TokenDbAdapter db = new TokenDbAdapter(this);
+			db.open();
+			Cursor c = db.fetchAllTokens();
+			startManagingCursor(c);
+			
+			//CharSequence[] items = {"mark", "test", "world"};
+			
+			builder.setTitle(R.string.app_name)
+				   .setSingleChoiceItems(c, -1, TokenDbAdapter.KEY_TOKEN_NAME, new DialogInterface.OnClickListener() {
+					
+					public void onClick(DialogInterface dialog, int which) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+			
+			d = builder.create();
+			db.close();
+			
+			break;
+			
 		default:
 			d = null;
 		
 		}
 		
 		return d;
+	}
+	
+	
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		super.onPrepareDialog(id, dialog);
+		
+		switch(id){
+		case DIALOG_OTP:
+			
+			TextView text = (TextView) dialog.findViewById(R.id.otpDialogText);
+			text.setText(generateOtp(mSelectedTokenId));
+			
+			mTimer = new Timer("otpCancel");
+			mTimer.schedule(new CloseOtpDialog(this), 10 * 1000);
+			
+			break;
+			
+		case DIALOG_DELETE_TOKEN:
+			break;
+		}
+	}
+	
+	private class CloseOtpDialog extends TimerTask{
+
+		private Activity mActivity;
+		
+		public CloseOtpDialog(Activity a){
+			mActivity = a;
+		}
+		
+		@Override
+		public void run() {
+			mActivity.dismissDialog(DIALOG_OTP);			
+		}
+		
 	}
 
 	@Override
@@ -195,9 +277,10 @@ public class TokenList extends ListActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);		
-		menu.add(0, MENU_ADD_ID, 0, R.string.menu_add).setIcon(android.R.drawable.ic_menu_add);	
+		menu.add(0, MENU_ADD_ID, 0, R.string.menu_add_token).setIcon(android.R.drawable.ic_menu_add);	
 		menu.add(0, MENU_PIN_CHANGE_ID, 1, R.string.menu_pin_change).setIcon(android.R.drawable.ic_lock_lock);
 		menu.add(0, MENU_PIN_REMOVE_ID, 2, R.string.menu_pin_remove).setIcon(android.R.drawable.ic_menu_delete);
+		menu.add(0, MENU_DELETE_TOKEN_ID, 3, R.string.menu_delete_token).setIcon(android.R.drawable.ic_menu_delete);
 		return true;
 	}
 
@@ -217,10 +300,15 @@ public class TokenList extends ListActivity {
 		case MENU_PIN_REMOVE_ID:
 			removePin();
 			return true;
+			
+		case MENU_DELETE_TOKEN_ID:
+			showDialog(DIALOG_DELETE_TOKEN);
+			return true;
 		}
 		
 		return super.onMenuItemSelected(featureId, item);
 	}
+
 
 	private void removePin() {
 		Intent i = new Intent(this, PinRemove.class);
@@ -244,18 +332,35 @@ public class TokenList extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 		
+		mSelectedTokenId = id;		
+		showDialog(DIALOG_OTP);	
+	}
+	
+	private DialogInterface.OnDismissListener dismissOtpDialog = new DialogInterface.OnDismissListener() {
+		
+		public void onDismiss(DialogInterface dialog) {
+			if(mTimer != null){
+				mTimer.cancel();
+			}			
+		}
+	};
+
+
+	private String generateOtp(long tokenId) {
 		TokenDbAdapter db = new TokenDbAdapter(this);
 		db.open();
 		
-		Cursor cursor = db.fetchToken(id);
+		Cursor cursor = db.fetchToken(tokenId);
 		IToken token = TokenFactory.CreateToken(cursor);
 		cursor.close();
 		
-		String otp = token.GenerateOtp();		
-		db.incrementTokenCount(id);
+		String otp = token.GenerateOtp();
+		
+		if(token instanceof HotpToken)
+			db.incrementTokenCount(tokenId);
+		
 		db.close();
 		
-		Toast.makeText(this, otp, Toast.LENGTH_LONG).show();		
-		
+		return otp;
 	}
 }

@@ -20,6 +20,7 @@
 package uk.co.bitethebullet.android.token.test;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import uk.co.bitethebullet.android.token.TotpToken;
 import junit.framework.Assert;
@@ -33,24 +34,37 @@ public class TotpTokenTests extends TestCase {
 		//utc = 2005-03-18T01:58:31
 		TotpToken token = new TotpToken("markTest", "1234", SEED, 30, 6);
 		
-		//Calendar.
+		Calendar time = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		time.set(2005, 2, 18, 1, 58, 31);
 		
-		//String otp = token.GenerateOtp(time);
+		System.out.println(time.getTime().toString());
 		
-		Assert.assertEquals("050471 ", "");
+		String otp = token.GenerateOtp(time);
+		
+		Assert.assertEquals("050471", otp);
 	}
 	
 	public void testOtp2(){
 		//utc  = 2009-02-13T23:31:30
 		TotpToken token = new TotpToken("markTest", "1234", SEED, 30, 6);
 		
-		Assert.assertEquals("005924", "");
+		Calendar time = Calendar.getInstance();
+		time.set(2009, 1, 13, 23, 31, 30);	
+		
+		String otp = token.GenerateOtp(time);
+		
+		Assert.assertEquals("005924", otp);
 	}
 	
 	public void testOtp3(){
 		//utc = 2033-05-18T03:33:20
 		TotpToken token = new TotpToken("markTest", "1234", SEED, 30, 6);
 		
-		Assert.assertEquals("279037", "");
+		Calendar time = Calendar.getInstance();
+		time.set(2033, 4, 18, 3, 33, 20);	
+		
+		String otp = token.GenerateOtp(time);
+		
+		Assert.assertEquals("279037", otp);
 	}
 }
