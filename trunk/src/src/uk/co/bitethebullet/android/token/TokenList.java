@@ -70,7 +70,9 @@ public class TokenList extends ListActivity {
 	
 	private Boolean mHasPassedPin = false;
 	private Long mSelectedTokenId;
+	private Long mTokenToDeleteId = Long.parseLong("-1");
 	private Timer mTimer = null;
+	private TokenDbAdapter mTokenDbHelper;
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
@@ -86,6 +88,8 @@ public class TokenList extends ListActivity {
         	mHasPassedPin = savedInstanceState.getBoolean(KEY_HAS_PASSED_PIN);
         }
         
+        mTokenDbHelper = new TokenDbAdapter(this);
+        mTokenDbHelper.open();
         
         //if we have a pin defined, need to enter that first before allow
         //the user to see the tokens        
@@ -173,29 +177,8 @@ public class TokenList extends ListActivity {
 			d.setOnDismissListener(dismissOtpDialog);
 			break;
 			
-		case DIALOG_DELETE_TOKEN:
-			
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			
-			TokenDbAdapter db = new TokenDbAdapter(this);
-			db.open();
-			Cursor c = db.fetchAllTokens();
-			startManagingCursor(c);
-			
-			//CharSequence[] items = {"mark", "test", "world"};
-			
-			builder.setTitle(R.string.app_name)
-				   .setSingleChoiceItems(c, -1, TokenDbAdapter.KEY_TOKEN_NAME, new DialogInterface.OnClickListener() {
-					
-					public void onClick(DialogInterface dialog, int which) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
-			
-			d = builder.create();
-			db.close();
-			
+		case DIALOG_DELETE_TOKEN:			
+			d = createDeleteTokenDialog();			
 			break;
 			
 		default:
@@ -205,7 +188,7 @@ public class TokenList extends ListActivity {
 		
 		return d;
 	}
-	
+
 	
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
@@ -223,6 +206,7 @@ public class TokenList extends ListActivity {
 			break;
 			
 		case DIALOG_DELETE_TOKEN:
+			mTokenToDeleteId = Long.parseLong("-1");
 			break;
 		}
 	}
@@ -253,10 +237,8 @@ public class TokenList extends ListActivity {
 	}
 
 	private void fillData() {
-		TokenDbAdapter db = new TokenDbAdapter(this);
-		db.open();
-		
-		Cursor c = db.fetchAllTokens();
+				
+		Cursor c = mTokenDbHelper.fetchAllTokens();
 		startManagingCursor(c);
 		
 		String[] from = new String[] {TokenDbAdapter.KEY_TOKEN_NAME, TokenDbAdapter.KEY_TOKEN_SERIAL};
@@ -265,7 +247,6 @@ public class TokenList extends ListActivity {
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.token_list_row, c, from, to);
 		setListAdapter(adapter);		
 		
-		db.close();
 	}
 
 	@Override
@@ -347,20 +328,59 @@ public class TokenList extends ListActivity {
 
 
 	private String generateOtp(long tokenId) {
-		TokenDbAdapter db = new TokenDbAdapter(this);
-		db.open();
-		
-		Cursor cursor = db.fetchToken(tokenId);
+
+		Cursor cursor = mTokenDbHelper.fetchToken(tokenId);
 		IToken token = TokenFactory.CreateToken(cursor);
 		cursor.close();
 		
 		String otp = token.GenerateOtp();
 		
 		if(token instanceof HotpToken)
-			db.incrementTokenCount(tokenId);
+			mTokenDbHelper.incrementTokenCount(tokenId);
 		
-		db.close();
 		
 		return otp;
 	}
+	
+	private Dialog createDeleteTokenDialog() {
+		Dialog d;
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		
+		Cursor c = mTokenDbHelper.fetchAllTokens();
+		startManagingCursor(c);
+					
+		builder.setTitle(R.string.app_name)
+			   .setSingleChoiceItems(c, -1, TokenDbAdapter.KEY_TOKEN_NAME, deleteTokenEvent)
+			   .setPositiveButton(R.string.dialogPositive, deleteTokenPositiveEvent)
+			   .setNegativeButton(R.string.dialogNegative, null);
+		
+		d = builder.create();
+		return d;
+	}
+	
+	private DialogInterface.OnClickListener deleteTokenPositiveEvent = new DialogInterface.OnClickListener() {
+		
+		public void onClick(DialogInterface dialog, int which) {
+			
+			if(mTokenToDeleteId > 0){
+				mTokenDbHelper.deleteToken(mTokenToDeleteId);
+				mTokenToDeleteId = Long.parseLong("-1");
+				fillData();
+				removeDialog(DIALOG_DELETE_TOKEN);
+			}
+			
+		}
+	};
+	
+	private DialogInterface.OnClickListener deleteTokenEvent = new DialogInterface.OnClickListener() {
+		
+		public void onClick(DialogInterface dialog, int which) {
+			Cursor c = mTokenDbHelper.fetchAllTokens();
+			startManagingCursor(c);
+			
+			c.moveToPosition(which);
+			mTokenToDeleteId = c.getLong(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));			
+		}
+	};
+	
 }
