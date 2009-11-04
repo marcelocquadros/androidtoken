@@ -2,9 +2,10 @@
 <resources>
     <string name="noTokens">No Tokens Defined</string>
     <string name="app_name">AndroidToken</string>
-<string name="menu_add">Add Token</string>
+<string name="menu_add_token">Add Token</string>
 <string name="menu_pin_change">Change PIN</string>
 <string name="menu_pin_remove">Remove Pin</string>
+<string name="menu_delete_token">Delete Token</string>
 <string name="tokenType">Token Type</string>
 <string name="tokenName">Name</string>
 <string name="tokenSerial">Serial No</string>
@@ -36,4 +37,5 @@
 <string name="pinRemoveExistingPin">Enter Existing PIN</string>
 <string name="pinRemoveSubmit">Remove</string>
 <string name="mainLogin">Login</string>
+<string name="otpDialogTitle">One Time Password</string>
 </resources>
