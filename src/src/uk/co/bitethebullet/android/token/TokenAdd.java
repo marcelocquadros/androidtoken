@@ -19,6 +19,10 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +49,8 @@ public class TokenAdd extends Activity {
 	private static final int DIALOG_STEP1_NO_SERIAL = 1;
 	private static final int DIALOG_STEP2_NO_SEED = 2;
 	private static final int DIALOG_STEP2_INVALID_SEED = 3;
+	
+	private static final int RANDOM_SEED_LENGTH = 160;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -94,8 +100,7 @@ public class TokenAdd extends Activity {
 		}
 
 		public void onNothingSelected(AdapterView<?> arg0) {
-			// TODO Auto-generated method stub
-			
+			//ignore			
 		}
 		
 	};
@@ -227,9 +232,42 @@ public class TokenAdd extends Activity {
 					showDialog(DIALOG_STEP2_INVALID_SEED);
 					return;
 				}				
-			}
+			}else{
+				//when creating a seed from password we simple sha1 the data then
+				//use that as a seed to to concat with the data again
+				//
+				//  h1 = sha1(password)
+				//  h2 = sha1(password + h1)
+				//
+				//h2 should then be stored as a hex string in the database
 			
-			//TODO password seed
+				//TODO implement the above
+				try{
+					
+					byte[] input = seed.getBytes();
+					MessageDigest md = MessageDigest.getInstance("SHA1");
+					
+					md.reset();
+					byte[] h1 = md.digest(input);
+					
+//					byte[] input2 = new byte[h1.length + input.length];
+//					
+//					ArrayList<Byte> buffer = new ArrayList<Byte>();
+//					buffer.toArray(contents)
+//					
+//					for(int i = 0 ; i < input.length; i++){
+//						input2[i] = input[i];
+//					}
+//					
+//					for(int i = input.length; i < input.length + h1.length; i++){
+//						
+//					}
+					
+				}catch(NoSuchAlgorithmException nsae){
+					
+				}
+			
+			}
 			
 			if(isValid){
 				//store token in db
@@ -251,7 +289,7 @@ public class TokenAdd extends Activity {
 			
 			if(rb.getId() == R.id.rbSeedRandom){
 				EditText seedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
-				seedEdit.setText(HotpToken.generateNewSeed(128));
+				seedEdit.setText(HotpToken.generateNewSeed(RANDOM_SEED_LENGTH));
 			}
 		}
 	};

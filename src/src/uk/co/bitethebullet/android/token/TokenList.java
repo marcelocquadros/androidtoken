@@ -201,8 +201,7 @@ public class TokenList extends ListActivity {
 			text.setText(generateOtp(mSelectedTokenId));
 			
 			mTimer = new Timer("otpCancel");
-			mTimer.schedule(new CloseOtpDialog(this), 10 * 1000);
-			
+			mTimer.schedule(new CloseOtpDialog(this), 10 * 1000);			
 			break;
 			
 		case DIALOG_DELETE_TOKEN:
@@ -232,6 +231,9 @@ public class TokenList extends ListActivity {
 		if(mHasPassedPin){
 			menu.getItem(2).setEnabled(PinManager.hasPinDefined(this));
 		}
+		
+		//if we have no tokens disable the delete token option
+		menu.getItem(3).setEnabled(this.getListView().getCount() > 0);
 		
 		return mHasPassedPin;
 	}
@@ -352,7 +354,7 @@ public class TokenList extends ListActivity {
 		builder.setTitle(R.string.app_name)
 			   .setSingleChoiceItems(c, -1, TokenDbAdapter.KEY_TOKEN_NAME, deleteTokenEvent)
 			   .setPositiveButton(R.string.dialogPositive, deleteTokenPositiveEvent)
-			   .setNegativeButton(R.string.dialogNegative, null);
+			   .setNegativeButton(R.string.dialogNegative, deleteTokenNegativeEvent);
 		
 		d = builder.create();
 		return d;
@@ -369,6 +371,13 @@ public class TokenList extends ListActivity {
 				removeDialog(DIALOG_DELETE_TOKEN);
 			}
 			
+		}
+	};
+	
+	private DialogInterface.OnClickListener deleteTokenNegativeEvent = new DialogInterface.OnClickListener() {
+		
+		public void onClick(DialogInterface dialog, int which) {
+			removeDialog(DIALOG_DELETE_TOKEN);			
 		}
 	};
 	
