@@ -26,19 +26,22 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.ImageView;
 
@@ -229,26 +232,17 @@ public class TokenList extends ListActivity {
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		
 		if(mHasPassedPin){
-			menu.getItem(2).setEnabled(PinManager.hasPinDefined(this));
+			menu.findItem(MENU_PIN_REMOVE_ID).setEnabled(PinManager.hasPinDefined(this));
 		}
 		
 		//if we have no tokens disable the delete token option
-		menu.getItem(3).setEnabled(this.getListView().getCount() > 0);
+		menu.findItem(MENU_DELETE_TOKEN_ID).setEnabled(this.getListView().getCount() > 0);
 		
 		return mHasPassedPin;
 	}
 
 	private void fillData() {
-				
-		Cursor c = mTokenDbHelper.fetchAllTokens();
-		startManagingCursor(c);
-		
-		String[] from = new String[] {TokenDbAdapter.KEY_TOKEN_NAME, TokenDbAdapter.KEY_TOKEN_SERIAL};
-		int[] to = new int[] {R.id.tokenrowtextname, R.id.tokenrowtextserial};
-		
-		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.token_list_row, c, from, to);
-		setListAdapter(adapter);		
-		
+		setListAdapter(new TokenAdapter(this, mTokenDbHelper));
 	}
 
 	@Override
@@ -391,5 +385,62 @@ public class TokenList extends ListActivity {
 			mTokenToDeleteId = c.getLong(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));			
 		}
 	};
+	
+	private class TokenAdapter extends BaseAdapter
+	{
+		private Context mContext;
+		private TokenDbAdapter mDbAdapter;
+		private Cursor mCursor;
+		
+		public TokenAdapter(Context context, TokenDbAdapter dbAdapter){
+			mContext = context;
+			mDbAdapter = dbAdapter;
+			
+			mCursor = mDbAdapter.fetchAllTokens();
+			startManagingCursor(mCursor);
+		}
+		
+		@Override
+		public int getCount() {			
+			return mCursor.getCount();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return getItemId(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			mCursor.moveToPosition(position);			
+			return mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));	
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			View row =  inflater.inflate(R.layout.token_list_row, null);
+			
+			//view controls
+			TextView nameText = (TextView)row.findViewById(R.id.tokenrowtextname);
+			TextView serialText = (TextView)row.findViewById(R.id.tokenrowtextserial);
+			TextView typeText = (TextView)row.findViewById(R.id.tokenrowtexttype);
+			
+			mCursor.moveToPosition(position);
+			
+			//cursor values
+			String name = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_NAME));
+			String serial = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL));
+			String type = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE)) == TokenDbAdapter.TOKEN_TYPE_EVENT ?
+						  "Event Token" : "Time Token";
+			
+			nameText.setText(name);
+			serialText.setText(serial);
+			typeText.setText(type);
+			
+			return row;
+		}
+	
+	}
 	
 }
