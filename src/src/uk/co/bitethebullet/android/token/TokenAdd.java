@@ -21,8 +21,6 @@ package uk.co.bitethebullet.android.token;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -240,8 +238,6 @@ public class TokenAdd extends Activity {
 				//  h2 = sha1(password + h1)
 				//
 				//h2 should then be stored as a hex string in the database
-			
-				//TODO implement the above
 				try{
 					
 					byte[] input = seed.getBytes();
@@ -249,19 +245,10 @@ public class TokenAdd extends Activity {
 					
 					md.reset();
 					byte[] h1 = md.digest(input);
+					md.reset();
+					byte[] h2 = md.digest(mergeByteArray(input, h1));
 					
-//					byte[] input2 = new byte[h1.length + input.length];
-//					
-//					ArrayList<Byte> buffer = new ArrayList<Byte>();
-//					buffer.toArray(contents)
-//					
-//					for(int i = 0 ; i < input.length; i++){
-//						input2[i] = input[i];
-//					}
-//					
-//					for(int i = input.length; i < input.length + h1.length; i++){
-//						
-//					}
+					seed = HotpToken.byteArrayToHexString(h2);
 					
 				}catch(NoSuchAlgorithmException nsae){
 					
@@ -281,6 +268,25 @@ public class TokenAdd extends Activity {
 			
 		}
 	};
+	
+	private byte[] mergeByteArray(byte[] b1, byte[] b2){
+		
+		byte[] result = new byte[b1.length + b2.length];
+		
+		int i = 0;
+		
+		for(byte b : b1){
+			result[i] = b;
+			i++;
+		}
+		
+		for(byte b : b2){
+			result[i] = b;
+			i++;	
+		}
+		
+		return result;		
+	}
 	
 	private OnClickListener radioSeed = new OnClickListener() {
 		
