@@ -61,6 +61,7 @@ public final class R {
         public static final int tokenrowtextname=0x7f060026;
         public static final int tokenrowtextserial=0x7f060028;
         public static final int tokenrowtextserialcaption=0x7f060027;
+        public static final int tokenrowtexttype=0x7f060029;
     }
     public static final class layout {
         public static final int main=0x7f030000;
