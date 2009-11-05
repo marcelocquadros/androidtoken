@@ -16,6 +16,6 @@
 <activity android:name=".PinChange" android:label="@string/app_name"></activity>
 <activity android:label="@string/app_name" android:name=".PinRemove"></activity>
 </application>
-    <uses-sdk android:minSdkVersion="2" />
+<uses-sdk android:minSdkVersion="2"/>
 
 </manifest> 
