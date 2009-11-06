@@ -400,23 +400,19 @@ public class TokenList extends ListActivity {
 			startManagingCursor(mCursor);
 		}
 		
-		@Override
 		public int getCount() {			
 			return mCursor.getCount();
 		}
 
-		@Override
 		public Object getItem(int position) {
 			return getItemId(position);
 		}
 
-		@Override
 		public long getItemId(int position) {
 			mCursor.moveToPosition(position);			
 			return mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));	
 		}
 
-		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View row =  inflater.inflate(R.layout.token_list_row, null);
