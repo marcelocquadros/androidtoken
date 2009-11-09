@@ -75,7 +75,7 @@ public class TokenList extends ListActivity {
 	private Long mSelectedTokenId;
 	private Long mTokenToDeleteId = Long.parseLong("-1");
 	private Timer mTimer = null;
-	private TokenDbAdapter mTokenDbHelper;
+	private TokenDbAdapter mTokenDbHelper = null;
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
@@ -114,6 +114,13 @@ public class TokenList extends ListActivity {
         }
     }
     
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		mTokenDbHelper.close();
+	}
+
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
