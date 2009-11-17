@@ -70,6 +70,7 @@ public class TokenList extends ListActivity {
 	private static final int DIALOG_DELETE_TOKEN = 2;
 	
 	private static final String KEY_HAS_PASSED_PIN = "pinValid";
+	private static final String KEY_SELECTED_TOKEN_ID = "selectedTokenId";
 	
 	private Boolean mHasPassedPin = false;
 	private Long mSelectedTokenId;
@@ -89,6 +90,7 @@ public class TokenList extends ListActivity {
         //check if we need to restore from a saveinstancestate
         if(savedInstanceState != null){
         	mHasPassedPin = savedInstanceState.getBoolean(KEY_HAS_PASSED_PIN);
+        	mSelectedTokenId = savedInstanceState.getLong(KEY_SELECTED_TOKEN_ID);
         }
         
         mTokenDbHelper = new TokenDbAdapter(this);
@@ -126,6 +128,7 @@ public class TokenList extends ListActivity {
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putBoolean(KEY_HAS_PASSED_PIN, mHasPassedPin);
+		outState.putLong(KEY_SELECTED_TOKEN_ID, mSelectedTokenId);
 	}
 
 	private OnClickListener validatePin = new 	OnClickListener() {
@@ -183,7 +186,7 @@ public class TokenList extends ListActivity {
 			d.setTitle(R.string.otpDialogTitle);
 
 			ImageView image = (ImageView) d.findViewById(R.id.otpDialogImage);
-			image.setImageResource(R.drawable.android50);
+			image.setImageResource(R.drawable.androidtoken);
 			d.setOnDismissListener(dismissOtpDialog);
 			break;
 			
@@ -208,7 +211,13 @@ public class TokenList extends ListActivity {
 		case DIALOG_OTP:
 			
 			TextView text = (TextView) dialog.findViewById(R.id.otpDialogText);
-			text.setText(generateOtp(mSelectedTokenId));
+			
+			
+			//occurs if we rotate the screen while displaying a token
+			if(mSelectedTokenId != null)
+			{
+				text.setText(generateOtp(mSelectedTokenId));
+			}
 			
 			mTimer = new Timer("otpCancel");
 			mTimer.schedule(new CloseOtpDialog(this), 10 * 1000);			
