@@ -73,7 +73,7 @@ public class TokenList extends ListActivity {
 	private static final String KEY_SELECTED_TOKEN_ID = "selectedTokenId";
 	
 	private Boolean mHasPassedPin = false;
-	private Long mSelectedTokenId;
+	private Long mSelectedTokenId = Long.parseLong("-1");
 	private Long mTokenToDeleteId = Long.parseLong("-1");
 	private Timer mTimer = null;
 	private TokenDbAdapter mTokenDbHelper = null;

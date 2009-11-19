@@ -48,6 +48,15 @@ public class TokenAdd extends Activity {
 	private static final int DIALOG_STEP2_NO_SEED = 2;
 	private static final int DIALOG_STEP2_INVALID_SEED = 3;
 	
+	//defines the define steps the activity can display
+	private static final int ACTIVITY_STEP_ONE = 0;
+	private static final int ACTIVITY_STEP_TWO = 1;
+	
+	private static final String KEY_ACTIVITY_STATE = "currentState";
+	
+	//current state of the activity
+	private int mCurrentActivityStep = ACTIVITY_STEP_ONE;
+	
 	private static final int RANDOM_SEED_LENGTH = 160;
 	
 	@Override
@@ -55,6 +64,12 @@ public class TokenAdd extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.token_add);
+		
+		if(savedInstanceState != null){
+			mCurrentActivityStep = savedInstanceState.getInt(KEY_ACTIVITY_STATE);
+			if(mCurrentActivityStep == ACTIVITY_STEP_TWO)
+				showStepTwo();
+		}
 		
 		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
 		loadSpinnerArrayData(R.id.tokenOtpSpinner, R.array.otpLength);
@@ -79,6 +94,13 @@ public class TokenAdd extends Activity {
 	}
 	
 	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt(KEY_ACTIVITY_STATE, mCurrentActivityStep);
+	}
+
+
 	private OnItemSelectedListener tokenTypeSelected = new OnItemSelectedListener() {
 
 		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
@@ -170,12 +192,8 @@ public class TokenAdd extends Activity {
 			}
 			
 			if(isValid){
-				//show the next step
-				LinearLayout step1 = (LinearLayout)findViewById(R.id.tokenAddStep1);
-				LinearLayout step2 = (LinearLayout)findViewById(R.id.tokenAddStep2);
-				
-				step1.setVisibility(View.GONE);
-				step2.setVisibility(View.VISIBLE);
+				showStepTwo();				
+				mCurrentActivityStep = ACTIVITY_STEP_TWO;
 			}
 		}
 	};
@@ -305,6 +323,16 @@ public class TokenAdd extends Activity {
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, arrayData, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinner.setAdapter(adapter);
+	}
+
+
+	private void showStepTwo() {
+		//show the next step
+		LinearLayout step1 = (LinearLayout)findViewById(R.id.tokenAddStep1);
+		LinearLayout step2 = (LinearLayout)findViewById(R.id.tokenAddStep2);
+		
+		step1.setVisibility(View.GONE);
+		step2.setVisibility(View.VISIBLE);
 	}
 
 }
