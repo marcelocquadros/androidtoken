@@ -1,10 +1,11 @@
-#summary One-sentence summary of this page.
+#summary How to define a new token in Android Token
 #labels Featured
 
 = Introduction =
 
-Add your content here.
+Android Token supports the ability to define multiple tokens, a single instance of Android Token can replace multiple hardware tokens that you would otherwise need to carry.
 
+You can create tokens which are Event Tokens ([http://tools.ietf.org/html/rfc4226 HOTP]) or Time Tokens ([http://tools.ietf.org/html/draft-mraihi-totp-timebased-00 TOTP]) with complete control other the settings for each token.
 
 = Details =
 
