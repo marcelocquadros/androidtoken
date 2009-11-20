@@ -3,7 +3,7 @@
 
 = Introduction =
 
-Android Token supports the ability to define multiple tokens, a single instance of Android Token can replace multiple hardware tokens that you would otherwise need to carry.
+Android Token supports the ability to define multiple tokens. A single instance of Android Token can replace multiple hardware tokens that you would otherwise need to carry.
 
 You can create tokens which are Event Tokens ([http://tools.ietf.org/html/rfc4226 HOTP]) or Time Tokens ([http://tools.ietf.org/html/draft-mraihi-totp-timebased-00 TOTP]) with complete control other the settings for each token.
 
@@ -47,7 +47,7 @@ As a minimum you should provider each Android Token user with the following info
   # *Time Step* - (Only required for Time Tokens) Defines the time in seconds that need to elapse before a new OTP is generated.
   # *Seed Value* - This should either be a hexadecimal string of 128 or 160 bits or a password used to create a seed using _Seed from Password_ function.
 
-*Its important that all the information above matches the information held on the OATH serve for that token.* 
+*Its important that all the information above matches the information held on the OATH servre for that token.* 
 
 == Seed from Password ==
 
