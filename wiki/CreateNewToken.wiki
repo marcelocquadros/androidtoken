@@ -17,11 +17,11 @@ Creating a new token is a two stage process. Firstly you define the basic settin
 
 [http://androidtoken.googlecode.com/svn/trunk/docs/images/createStep1.Png]
 
-#Select the type of token to create, this can either be an Event Token or a Time Token
-#Enter a name for the token, this is the name which will be displayed for the token.
-#Enter a serial number, your server administrator should be able to supply you this value.
-#Select the length of the OTP that the application will generate
-#For Time Tokens you should also set the time step of either 30 seconds or 60 seconds. Your server administrator will be able to supply the correct value.
+# Select the type of token to create, this can either be an Event Token or a Time Token
+# Enter a name for the token, this is the name which will be displayed for the token.
+# Enter a serial number, your server administrator should be able to supply you this value.
+# Select the length of the OTP that the application will generate
+# For Time Tokens you should also set the time step of either 30 seconds or 60 seconds. Your server administrator will be able to supply the correct value.
 
 == Step 2  ==
 
