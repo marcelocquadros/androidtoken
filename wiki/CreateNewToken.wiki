@@ -19,9 +19,9 @@ Creating a new token is a two stage process. Firstly you define the basic settin
 
   # Select the type of token to create, this can either be an Event Token or a Time Token
   # Enter a name for the token, this is the name which will be displayed for the token.
-# Enter a serial number, your server administrator should be able to supply you this value.
-# Select the length of the OTP that the application will generate
-# For Time Tokens you should also set the time step of either 30 seconds or 60 seconds. Your server administrator will be able to supply the correct value.
+  # Enter a serial number, your server administrator should be able to supply you this value.
+  # Select the length of the OTP that the application will generate
+  # For Time Tokens you should also set the time step of either 30 seconds or 60 seconds. Your server administrator will be able to supply the correct value.
 
 == Step 2  ==
 
@@ -29,6 +29,6 @@ Creating a new token is a two stage process. Firstly you define the basic settin
 
 You now need to enter the seed value for the token. Here you have three options to entry/generate the seed.
 
-#*Direct Entry* - Select this option to enter the hexadecimal value used as the seed. This should be either 128 or 160 bit in length
-#*Generate Random Seed* - Select this option to have the application generate a random 160 bit seed value. You will need to write this down and tell you're server administrator this value.
-#*Seed from Password* - This will generate a 160 bit seed using a alphanumeric password. Getting a user to enter a hexadecimal string into the Direct Entry option could be come cumbersome, therefore this is a simple way of generating a seed which is easy to enter for the user. (You can read more about Seed from Password below)
+  # *Direct Entry* - Select this option to enter the hexadecimal value used as the seed. This should be either 128 or 160 bit in length
+  # *Generate Random Seed* - Select this option to have the application generate a random 160 bit seed value. You will need to write this down and tell you're server administrator this value.
+  # *Seed from Password* - This will generate a 160 bit seed using a alphanumeric password. Getting a user to enter a hexadecimal string into the Direct Entry option could be come cumbersome, therefore this is a simple way of generating a seed which is easy to enter for the user. (You can read more about Seed from Password below)
