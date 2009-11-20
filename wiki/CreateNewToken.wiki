@@ -42,4 +42,5 @@ This is provided as an easy and secure way for the user to generate a seed witho
 The password is hashed using SHA1 then concatenate with itself before being hashed a second time to generate a seed value of 160 bits.
 
 _h1 = sha1(password)_
+
 _h2 = sha1(password + h1)_
