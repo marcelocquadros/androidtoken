@@ -9,7 +9,6 @@ You can create tokens which are Event Tokens ([http://tools.ietf.org/html/rfc422
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Creating a new token is a two stage process. Firstly you define the basic settings for the token then you entry or generate the seed for the token.
+
+*The seed value is used to generate the OTP value. You should protect the seed value and keep this value private.*
