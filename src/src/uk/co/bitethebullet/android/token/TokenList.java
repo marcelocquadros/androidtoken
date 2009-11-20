@@ -214,7 +214,7 @@ public class TokenList extends ListActivity {
 			
 			
 			//occurs if we rotate the screen while displaying a token
-			if(mSelectedTokenId != null)
+			if(mSelectedTokenId != -1)
 			{
 				text.setText(generateOtp(mSelectedTokenId));
 			}
@@ -339,8 +339,7 @@ public class TokenList extends ListActivity {
 	};
 
 
-	private String generateOtp(long tokenId) {
-
+	private String generateOtp(long tokenId) {		
 		Cursor cursor = mTokenDbHelper.fetchToken(tokenId);
 		IToken token = TokenFactory.CreateToken(cursor);
 		cursor.close();

@@ -53,9 +53,21 @@ public class TokenAdd extends Activity {
 	private static final int ACTIVITY_STEP_TWO = 1;
 	
 	private static final String KEY_ACTIVITY_STATE = "currentState";
+	private static final String KEY_TOKEN_TYPE = "tokenType";
+	private static final String KEY_OTP_LENGTH = "otpLength";
+	private static final String KEY_TIME_STEP = "timeStep";
+	private static final String KEY_NAME = "tokenName";
+	private static final String KEY_SERIAL = "tokenSerial";
 	
 	//current state of the activity
 	private int mCurrentActivityStep = ACTIVITY_STEP_ONE;
+	
+	//holds the data from step 1
+	private String mName;
+	private String mSerial;
+	private int mTokenType;
+	private int mOtpLength;
+	private int mTimeStep;
 	
 	private static final int RANDOM_SEED_LENGTH = 160;
 	
@@ -67,8 +79,29 @@ public class TokenAdd extends Activity {
 		
 		if(savedInstanceState != null){
 			mCurrentActivityStep = savedInstanceState.getInt(KEY_ACTIVITY_STATE);
-			if(mCurrentActivityStep == ACTIVITY_STEP_TWO)
+			
+			int tokenType = savedInstanceState.getInt(KEY_TOKEN_TYPE);
+			int otpLength = savedInstanceState.getInt(KEY_OTP_LENGTH);
+			int timeStep = savedInstanceState.getInt(KEY_TIME_STEP);
+			String tokenName = savedInstanceState.getString(KEY_NAME);
+			String tokenSerial = savedInstanceState.getString(KEY_SERIAL);			
+			
+			if(mCurrentActivityStep == ACTIVITY_STEP_TWO){
+				//step 2
+				mName = tokenName;
+				mSerial = tokenSerial;
+				mTokenType = tokenType;
+				mOtpLength = otpLength;
+				mTimeStep = timeStep;				
+				
 				showStepTwo();
+				
+			}else{
+				//step 1
+				((Spinner)findViewById(R.id.tokenTypeSpinner)).setSelection(tokenType);
+				((Spinner)findViewById(R.id.tokenOtpSpinner)).setSelection(otpLength);
+				((Spinner)findViewById(R.id.tokenTimeStepSpinner)).setSelection(timeStep);
+			}
 		}
 		
 		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
@@ -97,7 +130,28 @@ public class TokenAdd extends Activity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
+		
+		int tokenType;
+		int otpLength;
+		int timeStep;
+		
+		if(mCurrentActivityStep == ACTIVITY_STEP_ONE){
+			tokenType = ((Spinner)findViewById(R.id.tokenTypeSpinner)).getSelectedItemPosition();
+			otpLength = ((Spinner)findViewById(R.id.tokenOtpSpinner)).getSelectedItemPosition();
+			timeStep = ((Spinner)findViewById(R.id.tokenTimeStepSpinner)).getSelectedItemPosition();
+			
+			outState.putInt(KEY_TOKEN_TYPE, tokenType);
+			outState.putInt(KEY_OTP_LENGTH, otpLength);
+			outState.putInt(KEY_TIME_STEP, timeStep);
+		}else{
+			outState.putInt(KEY_TOKEN_TYPE, mTokenType);
+			outState.putInt(KEY_OTP_LENGTH, mOtpLength);
+			outState.putInt(KEY_TIME_STEP, mTimeStep);
+		}
+		
 		outState.putInt(KEY_ACTIVITY_STATE, mCurrentActivityStep);
+		outState.putString(KEY_NAME, mName);
+		outState.putString(KEY_SERIAL, mSerial);
 	}
 
 
@@ -192,6 +246,13 @@ public class TokenAdd extends Activity {
 			}
 			
 			if(isValid){
+				//store step 1 values in members vars
+				mName = name;
+				mSerial = serial;
+				mTokenType = ((Spinner)findViewById(R.id.tokenTypeSpinner)).getSelectedItemPosition();;
+				mOtpLength = Integer.parseInt(((Spinner)findViewById(R.id.tokenOtpSpinner)).getSelectedItem().toString());
+				mTimeStep = ((Spinner)findViewById(R.id.tokenTimeStepSpinner)).getSelectedItemPosition() == 0 ? 30 : 60;
+				
 				showStepTwo();				
 				mCurrentActivityStep = ACTIVITY_STEP_TWO;
 			}
@@ -205,23 +266,8 @@ public class TokenAdd extends Activity {
 			Boolean isValid = true;
 			
 			RadioButton rbPassword = (RadioButton)findViewById(R.id.rbSeedPassword);
-			String name = ((EditText)findViewById(R.id.tokenNameEdit)).getText().toString();
-			String serial = ((EditText)findViewById(R.id.tokenSerialEdit)).getText().toString();
 			String seed = ((EditText)findViewById(R.id.tokenSeedEdit)).getText().toString();
-			int tokenType = ((Spinner)findViewById(R.id.tokenTypeSpinner)).getSelectedItemPosition();
-			int otpLength = Integer.parseInt(((Spinner)findViewById(R.id.tokenOtpSpinner)).getSelectedItem().toString());
-			int timeStep;
-			
-			Spinner tokenTimeStepSpinner = (Spinner)findViewById(R.id.tokenTimeStepSpinner);
-					
-			switch(tokenTimeStepSpinner.getSelectedItemPosition()){
-				case 0:
-				default:
-					timeStep = 30;
-					
-				case 1:
-					timeStep = 60;
-			}
+
 			
 			if(seed.length() == 0){
 				isValid = false;
@@ -278,7 +324,7 @@ public class TokenAdd extends Activity {
 				//store token in db
 				TokenDbAdapter db = new TokenDbAdapter(v.getContext());
 				db.open();
-				db.createToken(name, serial, seed, tokenType, otpLength, timeStep);
+				db.createToken(mName, mSerial, seed, mTokenType, mOtpLength, mTimeStep);
 				db.close();
 				
 				finish();
