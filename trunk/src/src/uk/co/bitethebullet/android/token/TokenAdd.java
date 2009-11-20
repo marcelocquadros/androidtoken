@@ -77,6 +77,10 @@ public class TokenAdd extends Activity {
 		
 		setContentView(R.layout.token_add);
 		
+		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
+		loadSpinnerArrayData(R.id.tokenOtpSpinner, R.array.otpLength);
+		loadSpinnerArrayData(R.id.tokenTimeStepSpinner, R.array.timeStep);
+		
 		if(savedInstanceState != null){
 			mCurrentActivityStep = savedInstanceState.getInt(KEY_ACTIVITY_STATE);
 			
@@ -103,10 +107,6 @@ public class TokenAdd extends Activity {
 				((Spinner)findViewById(R.id.tokenTimeStepSpinner)).setSelection(timeStep);
 			}
 		}
-		
-		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
-		loadSpinnerArrayData(R.id.tokenOtpSpinner, R.array.otpLength);
-		loadSpinnerArrayData(R.id.tokenTimeStepSpinner, R.array.timeStep);
 		
 		Button btnNext = (Button)findViewById(R.id.btnAddStep2);
 		btnNext.setOnClickListener(buttonNext);
