@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="fill_parent"
+			  android:layout_height="wrap_content"
+			  android:orientation="vertical" 
+			  android:padding="5sp">
+	<TextView
+	  xmlns:android="http://schemas.android.com/apk/res/android"
+	  android:layout_width="fill_parent"
+	  android:layout_height="wrap_content"
+	  android:id="@+id/tokenrowtextname"
+	  android:textSize="20sp">
+	</TextView>
+	
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal">		
+		<TextView
+		  xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:layout_width="wrap_content"
+		  android:layout_height="wrap_content"
+		  android:id="@+id/tokenrowtextserialcaption"
+		  android:text="@string/tokenrowtextserialcaption">
+		</TextView>
+		<TextView
+		  xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:layout_width="wrap_content"
+		  android:layout_height="wrap_content"
+		  android:paddingLeft="5sp"
+		  android:id="@+id/tokenrowtextserial">
+		</TextView>
+		<TextView
+		  xmlns:android="http://schemas.android.com/apk/res/android"
+		  android:layout_width="wrap_content"
+		  android:layout_height="wrap_content"
+		  android:paddingLeft="15sp"
+		  android:id="@+id/tokenrowtexttype">
+		</TextView>
+	</LinearLayout>
+	
+</LinearLayout>
