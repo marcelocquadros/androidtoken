@@ -57,6 +57,8 @@ public class TotpTokenTests extends TestCase {
 	}
 	
 	public void testOtp3(){
+		//todo: MM this test fails, double check that the expected value should
+		//be then fix as required!!
 		//utc = 2033-05-18T03:33:20
 		TotpToken token = new TotpToken("markTest", "1234", SEED, 30, 6);
 		

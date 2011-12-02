@@ -194,18 +194,19 @@ public class TokenAdd extends Activity {
 		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
 			
-			switch(arg2){
-			case 0:
-				//hex format
-				break;
-			case 1:
-				//base 32 format
-				break;
-			case 2:
-				//base 64 format
-				break;
+			EditText tokenSeedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
+			String seed = tokenSeedEdit.getText().toString();
+			
+			try{
+				
+				seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, mTokenSeedFormat), arg2);
+			}
+			catch(IOException ex){
+				//todo: MM cancel the change of seed format, we have
+				//some error
 			}
 			
+			tokenSeedEdit.setText(seed);
 			mTokenSeedFormat = arg2;			
 		}
 
@@ -215,36 +216,7 @@ public class TokenAdd extends Activity {
 		
 	};
 	
-	private byte[] ConvertFromEncodingToBA(String input, int currentFormat) throws IOException{
-		
-		if(currentFormat == 0){
-			//hex
-			return HotpToken.stringToHex(input);
-		}else if(currentFormat == 1){
-			//base 32
-			//todo: MM complete me
-			return null;
-		}else if(currentFormat == 2){
-			//base64
-			return Base64.decode(input);
-		}else
-			return null;
-	}
-	
-	private String ConvertFromBA(byte[] input, int targetFormat){
-		if(targetFormat == 0){
-			//hex
-			return HotpToken.byteArrayToHexString(input);
-		}else if(targetFormat == 1){
-			//base 32
-			//todo: MM complete me
-			return null;
-		}else if(targetFormat == 2){
-			//base64
-			return Base64.encodeBytes(input);
-		}else
-			return null;
-	}
+
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
