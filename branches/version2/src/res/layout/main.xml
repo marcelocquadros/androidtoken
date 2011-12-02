@@ -37,7 +37,7 @@
 		    android:layout_height="wrap_content" 
 		    android:text="@string/pinChangeExistingPin"
 		    android:layout_marginTop="5sp"
-		    android:textSize="20dip"
+		    android:textSize="20dip"		    
 		    />
 		    
 		 <EditText
@@ -47,6 +47,7 @@
 			android:textSize="18sp"
 			android:password="true"
 			android:layout_marginTop="10dip"
+			android:inputType="number"
 		 />
 		 
 		<Button android:text="@string/mainLogin" 

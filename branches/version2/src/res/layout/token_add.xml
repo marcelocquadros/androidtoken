@@ -109,10 +109,18 @@
 		<RadioButton android:text="@string/rbSeedManual" android:checked="true" android:id="@+id/rbSeedManual" android:layout_width="wrap_content" android:layout_height="wrap_content"></RadioButton>
 		<RadioButton android:text="@string/rbSeedRandom" android:id="@+id/rbSeedRandom" android:layout_width="wrap_content" android:layout_height="wrap_content"></RadioButton>
 		<RadioButton android:text="@string/rbSeedPassword" android:id="@+id/rbSeedPassword" android:layout_width="wrap_content" android:layout_height="wrap_content"></RadioButton>
+
 	</RadioGroup>
 	
 	<TextView android:text="@string/tokenSeed" android:id="@+id/tokenSeed" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 	<EditText android:id="@+id/tokenSeedEdit" android:layout_width="fill_parent" android:layout_height="wrap_content"></EditText>
+
+	<Spinner
+	    android:id="@+id/tokenSeedFormat"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:prompt="@string/tokenSeedFormat" />
+
 	<Button android:text="@string/tokenAddComplete" android:id="@+id/tokenAddComplete" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
 	
 </LinearLayout>

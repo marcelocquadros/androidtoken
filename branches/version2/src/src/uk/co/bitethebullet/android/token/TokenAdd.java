@@ -19,6 +19,7 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
@@ -41,6 +42,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
+import uk.co.bitethebullet.android.token.util.*;
+
 public class TokenAdd extends Activity {
 
 	private static final int DIALOG_STEP1_NO_NAME = 0;
@@ -58,6 +61,7 @@ public class TokenAdd extends Activity {
 	private static final String KEY_TIME_STEP = "timeStep";
 	private static final String KEY_NAME = "tokenName";
 	private static final String KEY_SERIAL = "tokenSerial";
+	private static final String KEY_SEED_FORMAT = "tokenSeedFormat";
 	
 	//current state of the activity
 	private int mCurrentActivityStep = ACTIVITY_STEP_ONE;
@@ -68,6 +72,7 @@ public class TokenAdd extends Activity {
 	private int mTokenType;
 	private int mOtpLength;
 	private int mTimeStep;
+	private int mTokenSeedFormat;
 	
 	private static final int RANDOM_SEED_LENGTH = 160;
 	
@@ -80,6 +85,7 @@ public class TokenAdd extends Activity {
 		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
 		loadSpinnerArrayData(R.id.tokenOtpSpinner, R.array.otpLength);
 		loadSpinnerArrayData(R.id.tokenTimeStepSpinner, R.array.timeStep);
+		loadSpinnerArrayData(R.id.tokenSeedFormat, R.array.tokenSeedFormatType);
 		
 		if(savedInstanceState != null){
 			mCurrentActivityStep = savedInstanceState.getInt(KEY_ACTIVITY_STATE);
@@ -124,6 +130,9 @@ public class TokenAdd extends Activity {
 		
 		Spinner tokenType = (Spinner)findViewById(R.id.tokenTypeSpinner);
 		tokenType.setOnItemSelectedListener(tokenTypeSelected);
+		
+		Spinner tokenSeedFormat = (Spinner)findViewById(R.id.tokenSeedFormat);
+		tokenSeedFormat.setOnItemSelectedListener(tokenSeedFormatSelected);
 	}
 	
 	
@@ -178,6 +187,64 @@ public class TokenAdd extends Activity {
 		}
 		
 	};
+	
+	
+	private OnItemSelectedListener tokenSeedFormatSelected = new OnItemSelectedListener() {
+
+		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			
+			switch(arg2){
+			case 0:
+				//hex format
+				break;
+			case 1:
+				//base 32 format
+				break;
+			case 2:
+				//base 64 format
+				break;
+			}
+			
+			mTokenSeedFormat = arg2;			
+		}
+
+		public void onNothingSelected(AdapterView<?> arg0) {
+			// ignore not required			
+		}
+		
+	};
+	
+	private byte[] ConvertFromEncodingToBA(String input, int currentFormat) throws IOException{
+		
+		if(currentFormat == 0){
+			//hex
+			return HotpToken.stringToHex(input);
+		}else if(currentFormat == 1){
+			//base 32
+			//todo: MM complete me
+			return null;
+		}else if(currentFormat == 2){
+			//base64
+			return Base64.decode(input);
+		}else
+			return null;
+	}
+	
+	private String ConvertFromBA(byte[] input, int targetFormat){
+		if(targetFormat == 0){
+			//hex
+			return HotpToken.byteArrayToHexString(input);
+		}else if(targetFormat == 1){
+			//base 32
+			//todo: MM complete me
+			return null;
+		}else if(targetFormat == 2){
+			//base64
+			return Base64.encodeBytes(input);
+		}else
+			return null;
+	}
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -240,10 +307,12 @@ public class TokenAdd extends Activity {
 				isValid = false;
 				showDialog(DIALOG_STEP1_NO_NAME);
 				
-			}else if(serial.length() == 0){
-				isValid = false;
-				showDialog(DIALOG_STEP1_NO_SERIAL);
 			}
+			//make the serial number an optional parameter
+//			else if(serial.length() == 0){
+//				isValid = false;
+//				showDialog(DIALOG_STEP1_NO_SERIAL);
+//			}
 			
 			if(isValid){
 				//store step 1 values in members vars
@@ -357,9 +426,20 @@ public class TokenAdd extends Activity {
 		public void onClick(View v) {
 			RadioButton rb = (RadioButton)v;
 			
+			//if we are entering the seed manually/randomly we should display the
+			//the format option to allow the user to enter as hex/base64/base32
+			
 			if(rb.getId() == R.id.rbSeedRandom){
 				EditText seedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
 				seedEdit.setText(HotpToken.generateNewSeed(RANDOM_SEED_LENGTH));
+			}
+			
+			Spinner tokenSeedFormat = (Spinner)findViewById(R.id.tokenSeedFormat);
+			
+			if(rb.getId() == R.id.rbSeedManual || rb.getId() == R.id.rbSeedRandom){
+				tokenSeedFormat.setEnabled(true);
+			}else{
+				tokenSeedFormat.setEnabled(false);
 			}
 		}
 	};

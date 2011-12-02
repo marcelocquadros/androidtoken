@@ -39,4 +39,5 @@
 <string name="pinRemoveSubmit">Remove</string>
 <string name="mainLogin">Login</string>
 <string name="otpDialogTitle">One Time Password</string>
+<string name="tokenSeedFormat">Input Format</string>
 </resources>

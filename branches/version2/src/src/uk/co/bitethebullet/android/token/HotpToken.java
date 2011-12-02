@@ -139,7 +139,7 @@ public class HotpToken implements IToken {
 		return result;		
 	}
 
-	private byte[] stringToHex(String hexInputString){
+	public static byte[] stringToHex(String hexInputString){
 		
 		byte[] bts = new byte[hexInputString.length() / 2];
 		
