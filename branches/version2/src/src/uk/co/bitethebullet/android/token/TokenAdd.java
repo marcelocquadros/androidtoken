@@ -197,8 +197,7 @@ public class TokenAdd extends Activity {
 			EditText tokenSeedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
 			String seed = tokenSeedEdit.getText().toString();
 			
-			try{
-				
+			try{				
 				seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, mTokenSeedFormat), arg2);
 			}
 			catch(IOException ex){
@@ -308,7 +307,19 @@ public class TokenAdd extends Activity {
 			
 			RadioButton rbPassword = (RadioButton)findViewById(R.id.rbSeedPassword);
 			String seed = ((EditText)findViewById(R.id.tokenSeedEdit)).getText().toString();
-
+			
+			try {
+				//if the seed is not in hex format convert this to hex
+				//then make sure the length is 
+				if(mTokenSeedFormat == 1){
+					//base32
+					seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, 1), 0);
+				}else if(mTokenSeedFormat == 2){
+					//base 64
+					seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, 2), 0);
+				}
+			} catch (IOException e) {
+			}
 			
 			if(seed.length() == 0){
 				isValid = false;
@@ -321,7 +332,7 @@ public class TokenAdd extends Activity {
 				//validate the length
 				int seedLength = seed.length();
 				
-				if(seedLength != 32 & seedLength != 40){
+				if(seedLength < 32){
 					isValid = false;
 					showDialog(DIALOG_STEP2_INVALID_SEED);
 					return;

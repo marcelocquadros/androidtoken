@@ -19,10 +19,13 @@ public final class R {
     public static final class drawable {
         public static final int android50=0x7f020000;
         public static final int androidtoken=0x7f020001;
-        public static final int icon=0x7f020002;
+        public static final int clock_24=0x7f020002;
+        public static final int icon=0x7f020003;
+        public static final int options_24=0x7f020004;
     }
     public static final class id {
         public static final int btnAddStep2=0x7f06001c;
+        public static final int ivTokenIcon=0x7f060027;
         public static final int mainList=0x7f060000;
         public static final int mainLogin=0x7f060003;
         public static final int mainPin=0x7f060001;
@@ -51,6 +54,7 @@ public final class R {
         public static final int tokenNameEdit=0x7f060015;
         public static final int tokenOtp=0x7f060018;
         public static final int tokenOtpSpinner=0x7f060019;
+        public static final int tokenRowTimeTokenOtp=0x7f06002b;
         public static final int tokenSeed=0x7f060023;
         public static final int tokenSeedEdit=0x7f060024;
         public static final int tokenSeedFormat=0x7f060025;
@@ -61,10 +65,9 @@ public final class R {
         public static final int tokenTimeStepSpinner=0x7f06001b;
         public static final int tokenType=0x7f060012;
         public static final int tokenTypeSpinner=0x7f060013;
-        public static final int tokenrowtextname=0x7f060027;
-        public static final int tokenrowtextserial=0x7f060029;
-        public static final int tokenrowtextserialcaption=0x7f060028;
-        public static final int tokenrowtexttype=0x7f06002a;
+        public static final int tokenrowtextname=0x7f060028;
+        public static final int tokenrowtextserial=0x7f06002a;
+        public static final int tokenrowtextserialcaption=0x7f060029;
     }
     public static final class layout {
         public static final int main=0x7f030000;
@@ -84,6 +87,7 @@ public final class R {
         public static final int menu_delete_token=0x7f050005;
         public static final int menu_pin_change=0x7f050003;
         public static final int menu_pin_remove=0x7f050004;
+        public static final int menu_scan=0x7f050028;
         public static final int noTokens=0x7f050000;
         public static final int otpDialogTitle=0x7f050026;
         public static final int pinAlertInvalidPin=0x7f050020;

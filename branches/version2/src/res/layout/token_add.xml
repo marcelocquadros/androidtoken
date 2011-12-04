@@ -57,12 +57,14 @@
 			android:text="@string/tokenSerial"
 	>
 	</TextView>
+
 	<EditText
-			android:id="@+id/tokenSerialEdit"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:textSize="18sp"
-	>
+	    android:id="@+id/tokenSerialEdit"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:inputType="number"
+	    android:textSize="18sp" >
+
 	</EditText>
 	  
 	<TextView android:text="@string/tokenOtp" 
