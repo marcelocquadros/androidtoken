@@ -19,15 +19,19 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.crypto.spec.IvParameterSpec;
 
+import uk.co.bitethebullet.android.token.util.SeedConvertor;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -75,6 +79,10 @@ public class TokenList extends ListActivity {
 	
 	private static final String KEY_HAS_PASSED_PIN = "pinValid";
 	private static final String KEY_SELECTED_TOKEN_ID = "selectedTokenId";
+	
+	private static final String ZXING_MARKET = "market://search?q=pname:com.google.zxing.client.android";
+	private static final String ZXING_DIRECT = "https://zxing.googlecode.com/files/BarcodeScanner3.72.apk";
+	private static final int ZXING_REQUEST_CODE = 1;
 	
 	private static final long OTP_UPDATE_INTERVAL = 10;
 	
@@ -300,9 +308,44 @@ public class TokenList extends ListActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		fillData();
+//		super.onActivityResult(requestCode, resultCode, data);
+//		fillData();
+		if(requestCode == ZXING_REQUEST_CODE && resultCode == Activity.RESULT_OK){
+			storeOtpAuthUrl(data.getStringExtra("SCAN_RESULT"));
+		}
 	}
+
+	private void storeOtpAuthUrl(String url) {
+		// TODO MM complete me
+		try {
+			ITokenMeta token = parseOtpAuthUrl(url);
+			
+			String hexSeed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(token.getSecretBase32(), SeedConvertor.BASE32_FORMAT), SeedConvertor.HEX_FORMAT);
+			
+			TokenDbAdapter db = new TokenDbAdapter(this.getBaseContext());
+			db.open();
+			db.createToken(token.getName(), "", hexSeed, token.getTokenType(), token.getDigits(), token.getTimeStep());
+			db.close();
+			
+		} catch (OtpAuthUriException e) {
+			// TODO Auto-generated catch block
+			//TODO: MM if the url is wrong display
+			//some caption to the user
+		}catch(IOException e){
+			//TODO: MM issue with the seed, so we need to warn
+			//the customer
+		}
+		
+		//TODO: MM take te token data and then
+		//save into the table
+	}
+
+
+	public static ITokenMeta parseOtpAuthUrl(String url) throws OtpAuthUriException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -337,11 +380,30 @@ public class TokenList extends ListActivity {
 			return true;
 			
 		case MENU_SCAN_QR:
-			//TODO: MM complete me
+			scanQR();
 			return true;
 		}
 		
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+
+	private void scanQR() {
+		Intent intentQrScan = new Intent("com.google.zxing.client.android.SCAN");
+		intentQrScan.putExtra("SCAN_MODE", "QR_CODE_MODE");
+		intentQrScan.putExtra("SAVE_HISTORY", false);
+		
+		try{
+			startActivityForResult(intentQrScan, ZXING_REQUEST_CODE);
+		}catch(ActivityNotFoundException  ex){
+			downloadZxingApp();
+		}
+	}
+
+
+	private void downloadZxingApp() {
+		// TODO MM complete me Auto-generated method stub
+		
 	}
 
 
