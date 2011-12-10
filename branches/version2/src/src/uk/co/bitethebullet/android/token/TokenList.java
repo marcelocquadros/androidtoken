@@ -20,24 +20,34 @@
 package uk.co.bitethebullet.android.token;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.crypto.spec.IvParameterSpec;
 
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+
 import uk.co.bitethebullet.android.token.util.SeedConvertor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -49,6 +59,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 
@@ -84,8 +95,6 @@ public class TokenList extends ListActivity {
 	private static final String ZXING_DIRECT = "https://zxing.googlecode.com/files/BarcodeScanner3.72.apk";
 	private static final int ZXING_REQUEST_CODE = 1;
 	
-	private static final long OTP_UPDATE_INTERVAL = 10;
-	
 	private Boolean mHasPassedPin = false;
 	private Long mSelectedTokenId = Long.parseLong("-1");
 	private Long mTokenToDeleteId = Long.parseLong("-1");
@@ -96,6 +105,8 @@ public class TokenList extends ListActivity {
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
+	
+	private AdView adView;
 	
     /** Called when the activity is first created. */
     @Override
@@ -132,11 +143,20 @@ public class TokenList extends ListActivity {
         }
         
         mHandler = new Handler();
+        
+        adView = new AdView(this, AdSize.BANNER, "a14ee3663c2a098");
+        adView.setGravity(Gravity.BOTTOM);
+        LinearLayout layout = (LinearLayout)findViewById(R.id.parentLayout);
+        layout.addView(adView);
+        AdRequest adRequest = new AdRequest();
+        adRequest.addTestDevice(AdRequest.TEST_EMULATOR);
+        adView.loadAd(adRequest);
     }
     
 
 	@Override
 	protected void onDestroy() {
+		adView.destroy();
 		super.onDestroy();
 		mTokenDbHelper.close();
 	}
@@ -151,7 +171,20 @@ public class TokenList extends ListActivity {
 			public void run() {				
 				if(mOtpUpdateTask == this){
 					TokenList.this.fillData();
-					mHandler.postDelayed(mOtpUpdateTask, OTP_UPDATE_INTERVAL * 1000);
+					
+					//work out the time to the next 30 seconds,
+					//change over
+					Date dt = new Date();
+					int nextRun;
+					int curSec = dt.getSeconds();
+					
+					if(curSec >= 30){
+						nextRun = 60 - curSec;
+					}else{
+						nextRun = 30 - curSec;
+					}
+					
+					mHandler.postDelayed(mOtpUpdateTask, nextRun * 1000);
 				}
 			}			
 		};
@@ -308,17 +341,14 @@ public class TokenList extends ListActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//		super.onActivityResult(requestCode, resultCode, data);
-//		fillData();
 		if(requestCode == ZXING_REQUEST_CODE && resultCode == Activity.RESULT_OK){
 			storeOtpAuthUrl(data.getStringExtra("SCAN_RESULT"));
 		}
 	}
 
 	private void storeOtpAuthUrl(String url) {
-		// TODO MM complete me
 		try {
-			ITokenMeta token = parseOtpAuthUrl(url);
+			ITokenMeta token = parseOtpAuthUrl(getApplicationContext(), url);
 			
 			String hexSeed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(token.getSecretBase32(), SeedConvertor.BASE32_FORMAT), SeedConvertor.HEX_FORMAT);
 			
@@ -328,22 +358,70 @@ public class TokenList extends ListActivity {
 			db.close();
 			
 		} catch (OtpAuthUriException e) {
-			// TODO Auto-generated catch block
-			//TODO: MM if the url is wrong display
-			//some caption to the user
+			Log.e(TokenList.class.getName(), e.getMessage(), e);
 		}catch(IOException e){
-			//TODO: MM issue with the seed, so we need to warn
-			//the customer
+			Log.e(TokenList.class.getName(), e.getMessage(), e);
 		}
-		
-		//TODO: MM take te token data and then
-		//save into the table
 	}
 
 
-	public static ITokenMeta parseOtpAuthUrl(String url) throws OtpAuthUriException {
-		// TODO Auto-generated method stub
-		return null;
+	public static ITokenMeta parseOtpAuthUrl(Context context, String url) throws OtpAuthUriException {
+		
+		int tokenType;
+		String tokenName;
+		String secret = null;
+		int digits = 6;
+		int counter = 0;
+		int period = 30;
+		boolean hasCounterParameter = false;
+				
+		if(!url.startsWith("otpauth://")){
+			//not a valid otpauth url
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthUrlInvalid));
+			throw new OtpAuthUriException();
+		}
+		
+		String tokenTypeString = url.substring(10, url.indexOf("/", 10));
+		
+		if(tokenTypeString.equals("hotp")){
+			tokenType = TokenMetaData.HOTP_TOKEN;
+		}else if(tokenTypeString.equals("totp")){
+			tokenType = TokenMetaData.TOTP_TOKEN;
+		}else{
+			//the token type parameter is not valid
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthTokenTypeInvalid));
+			throw new OtpAuthUriException();
+		}
+		
+		tokenName = url.substring(url.indexOf("/", 10) + 1, url.indexOf("?", 10));
+		
+		String[] parameters = url.substring(url.indexOf("?") + 1).split("&");
+		
+		for(int i = 0; i < parameters.length; i++){
+			String[] paraDetail = parameters[i].split("=");
+			
+			//read the parameter and work out if its
+			//a valid parameter, if not just ignore
+			if(paraDetail[0].equals("secret")){
+				secret = paraDetail[1];
+			}else if(paraDetail[0].equals("digits")){
+				digits = Integer.parseInt(paraDetail[1]);
+			}else if(paraDetail[0].equals("counter")){
+				counter = Integer.parseInt(paraDetail[1]);
+				hasCounterParameter = true;
+			}else if(paraDetail[0].equals("period")){
+				period = Integer.parseInt(paraDetail[1]);
+			}
+		}
+		
+		if(tokenType == TokenMetaData.HOTP_TOKEN && !hasCounterParameter){
+			//when the token is a hotp token it must have the counter
+			//parameter supplied otherwise we should throw an error
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthMissingCounterParameter));
+			throw new OtpAuthUriException();
+		}
+		
+		return new TokenMetaData(tokenName, tokenType, secret, digits, period, counter);
 	}
 
 

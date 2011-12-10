@@ -41,4 +41,7 @@
 <string name="otpDialogTitle">One Time Password</string>
 <string name="tokenSeedFormat">Input Format</string>
 <string name="menu_scan">Scan QR</string>
+<string name="otpAuthUrlInvalid">otpauth url is not valid</string>
+<string name="otpAuthTokenTypeInvalid">Invalid token type</string>
+<string name="otpAuthMissingCounterParameter">The counter parameter is required when creating an HOTP token</string>
 </resources>

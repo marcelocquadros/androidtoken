@@ -5,38 +5,46 @@ public class TokenMetaData implements ITokenMeta {
 	public static final int HOTP_TOKEN = 0;
 	public static final int TOTP_TOKEN = 1;
 	
-	public TokenMetaData(){
-		
+	String tokenName;
+	int tokenType;
+	String secretBase32;
+	int digits;
+	int timeStep;
+	int counter;
+	
+	public TokenMetaData(String tokenName, int tokenType, String secret,
+							int digits, int timeStep, int counter)
+	{
+		this.tokenName = tokenName;
+		this.tokenType = tokenType;
+		this.secretBase32 = secret;
+		this.digits = digits;
+		this.timeStep = timeStep;
+		this.counter = counter;
 	}
 	
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return tokenName;
 	}
 
 	public int getTokenType() {
-		// TODO Auto-generated method stub
-		return 0;
+		return tokenType;
 	}
 
 	public String getSecretBase32() {
-		// TODO Auto-generated method stub
-		return null;
+		return secretBase32;
 	}
 
 	public int getDigits() {
-		// TODO Auto-generated method stub
-		return 0;
+		return digits;
 	}
 
 	public int getTimeStep() {
-		// TODO Auto-generated method stub
-		return 0;
+		return timeStep;
 	}
 
 	public int getCounter() {
-		// TODO Auto-generated method stub
-		return 0;
+		return counter;
 	}
 
 }
