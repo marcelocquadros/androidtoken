@@ -54,6 +54,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -144,10 +145,16 @@ public class TokenList extends ListActivity {
         
         mHandler = new Handler();
         
+        
+        //render the ad to the bottom of the layout
         adView = new AdView(this, AdSize.BANNER, "a14ee3663c2a098");
-        adView.setGravity(Gravity.BOTTOM);
-        LinearLayout layout = (LinearLayout)findViewById(R.id.parentLayout);
-        layout.addView(adView);
+        RelativeLayout layout = (RelativeLayout)findViewById(R.id.parentLayout);
+        
+        RelativeLayout.LayoutParams relLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT,
+        																				LayoutParams.WRAP_CONTENT);
+        relLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        
+        layout.addView(adView, relLayoutParams);
         AdRequest adRequest = new AdRequest();
         adRequest.addTestDevice(AdRequest.TEST_EMULATOR);
         adView.loadAd(adRequest);
