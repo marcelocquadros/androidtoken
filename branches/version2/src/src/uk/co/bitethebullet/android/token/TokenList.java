@@ -670,7 +670,7 @@ public class TokenList extends ListActivity {
 			//value for the token. Event tokens will still need to
 			//be click to display the otp
 			if(currentToken.getTokenType() == TokenDbAdapter.TOKEN_TYPE_TIME){
-				tokenImage.setImageResource(R.drawable.clock_24);
+				tokenImage.setImageResource(R.drawable.clock_32);
 				totpText.setVisibility(View.VISIBLE);
 				totpText.setText(currentToken.generateOtp());
 				
@@ -693,7 +693,7 @@ public class TokenList extends ListActivity {
 				totpProgressBar.setProgress(progress);
 			}
 			else
-				tokenImage.setImageResource(R.drawable.options_24);
+				tokenImage.setImageResource(R.drawable.events_32);
 			
 			return row;
 		}
