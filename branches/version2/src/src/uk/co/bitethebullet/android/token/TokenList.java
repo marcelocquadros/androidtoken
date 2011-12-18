@@ -60,6 +60,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
@@ -78,6 +79,7 @@ public class TokenList extends ListActivity {
 	private static final int ACTIVITY_ADD_TOKEN = 0;
 	private static final int ACTIVITY_CHANGE_PIN = 1;
 	private static final int ACTIVITY_REMOVE_PIN = 2;
+	private static final int ACTIVITY_CIRCLE = 4; //TODO: mm remove me
 	
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
@@ -619,13 +621,13 @@ public class TokenList extends ListActivity {
 
 		public View getView(int position, View convertView, ViewGroup parent) {
 			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			View row =  inflater.inflate(R.layout.token_list_row, null);
+			View row =  inflater.inflate(R.layout.token_list_row, null);		
 			
-			//view controls
 			TextView nameText = (TextView)row.findViewById(R.id.tokenrowtextname);
 			TextView serialText = (TextView)row.findViewById(R.id.tokenrowtextserial);
 			ImageView tokenImage = (ImageView)row.findViewById(R.id.ivTokenIcon);
 			TextView totpText = (TextView)row.findViewById(R.id.tokenRowTimeTokenOtp);
+			ProgressBar totpProgressBar = (ProgressBar)row.findViewById(R.id.totpTimerProgressbar);
 			
 			mCursor.moveToPosition(position);
 			
@@ -634,6 +636,7 @@ public class TokenList extends ListActivity {
 			String serial = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL));
 			long tokenId = mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));
 			int type = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE));
+			int totpInterval = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TIME_STEP));
 			
 			nameText.setText(name);
 			if(serial.length() > 0)
@@ -647,8 +650,21 @@ public class TokenList extends ListActivity {
 			//be click to display the otp
 			if(type == TokenDbAdapter.TOKEN_TYPE_TIME){
 				tokenImage.setImageResource(R.drawable.clock_24);
-				totpText.setVisibility(0);
+				totpText.setVisibility(View.VISIBLE);
 				totpText.setText(generateOtp(tokenId));
+				
+				totpProgressBar.setVisibility(View.VISIBLE);
+				
+				Date dt = new Date();
+				int curSec = dt.getSeconds();
+				
+				if(totpInterval == 30){
+					int progress = (int)((curSec/60)*100);
+					totpProgressBar.setProgress(progress);
+				}else{
+					int progress = (int)((curSec/60)*100);
+					totpProgressBar.setProgress(progress);
+				}
 			}
 			else
 				tokenImage.setImageResource(R.drawable.options_24);

@@ -25,7 +25,7 @@ public final class R {
     }
     public static final class id {
         public static final int btnAddStep2=0x7f06001d;
-        public static final int ivTokenIcon=0x7f060028;
+        public static final int ivTokenIcon=0x7f060029;
         public static final int mainList=0x7f060001;
         public static final int mainLogin=0x7f060004;
         public static final int mainPin=0x7f060002;
@@ -51,11 +51,12 @@ public final class R {
         public static final int tokenAddComplete=0x7f060027;
         public static final int tokenAddStep1=0x7f060012;
         public static final int tokenAddStep2=0x7f06001e;
+        public static final int tokenListRelatedLayout=0x7f060028;
         public static final int tokenName=0x7f060015;
         public static final int tokenNameEdit=0x7f060016;
         public static final int tokenOtp=0x7f060019;
         public static final int tokenOtpSpinner=0x7f06001a;
-        public static final int tokenRowTimeTokenOtp=0x7f06002c;
+        public static final int tokenRowTimeTokenOtp=0x7f06002d;
         public static final int tokenSeed=0x7f060024;
         public static final int tokenSeedEdit=0x7f060025;
         public static final int tokenSeedFormat=0x7f060026;
@@ -66,9 +67,10 @@ public final class R {
         public static final int tokenTimeStepSpinner=0x7f06001c;
         public static final int tokenType=0x7f060013;
         public static final int tokenTypeSpinner=0x7f060014;
-        public static final int tokenrowtextname=0x7f060029;
-        public static final int tokenrowtextserial=0x7f06002b;
-        public static final int tokenrowtextserialcaption=0x7f06002a;
+        public static final int tokenrowtextname=0x7f06002a;
+        public static final int tokenrowtextserial=0x7f06002c;
+        public static final int tokenrowtextserialcaption=0x7f06002b;
+        public static final int totpTimerProgressbar=0x7f06002e;
     }
     public static final class layout {
         public static final int main=0x7f030000;
