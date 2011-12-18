@@ -83,8 +83,12 @@ public final class R {
     public static final class string {
         public static final int app_name=0x7f050001;
         public static final int btnAddStep2=0x7f05000b;
+        public static final int cancel=0x7f05002c;
         public static final int dialogNegative=0x7f050016;
         public static final int dialogPositive=0x7f050015;
+        public static final int install=0x7f05002d;
+        public static final int install_zxing_caption=0x7f05002f;
+        public static final int install_zxing_title=0x7f05002e;
         public static final int mainLogin=0x7f050025;
         public static final int menu_add_token=0x7f050002;
         public static final int menu_delete_token=0x7f050005;

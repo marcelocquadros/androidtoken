@@ -44,4 +44,8 @@
 <string name="otpAuthUrlInvalid">otpauth url is not valid</string>
 <string name="otpAuthTokenTypeInvalid">Invalid token type</string>
 <string name="otpAuthMissingCounterParameter">The counter parameter is required when creating an HOTP token</string>
+<string name="cancel">Cancel</string>
+<string name="install">Install</string>
+<string name="install_zxing_title">Install Barcode Scanner?</string>
+<string name="install_zxing_caption">To read barcode you need need install the ZXING barcode scanner app.</string>
 </resources>

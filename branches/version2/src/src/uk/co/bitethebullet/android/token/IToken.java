@@ -20,5 +20,18 @@
 package uk.co.bitethebullet.android.token;
 
 public interface IToken {
-	public String GenerateOtp();
+	
+	public String getName();
+	
+	public String getSerialNumber();
+	
+	public int getTokenType();
+	
+	public String generateOtp();
+	
+	public long getId();
+	
+	public void setId(long id);
+	
+	public int getTimeStep();
 }

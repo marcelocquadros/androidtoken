@@ -20,7 +20,9 @@
 package uk.co.bitethebullet.android.token;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,6 +46,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -79,7 +82,6 @@ public class TokenList extends ListActivity {
 	private static final int ACTIVITY_ADD_TOKEN = 0;
 	private static final int ACTIVITY_CHANGE_PIN = 1;
 	private static final int ACTIVITY_REMOVE_PIN = 2;
-	private static final int ACTIVITY_CIRCLE = 4; //TODO: mm remove me
 	
 	private static final int MENU_ADD_ID = Menu.FIRST;
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
@@ -108,6 +110,8 @@ public class TokenList extends ListActivity {
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
+	
+	private TokenAdapter mtokenAdaptor = null;
 	
 	private AdView adView;
 	
@@ -181,19 +185,7 @@ public class TokenList extends ListActivity {
 				if(mOtpUpdateTask == this){
 					TokenList.this.fillData();
 					
-					//work out the time to the next 30 seconds,
-					//change over
-					Date dt = new Date();
-					int nextRun;
-					int curSec = dt.getSeconds();
-					
-					if(curSec >= 30){
-						nextRun = 60 - curSec;
-					}else{
-						nextRun = 30 - curSec;
-					}
-					
-					mHandler.postDelayed(mOtpUpdateTask, nextRun * 1000);
+					mHandler.postDelayed(mOtpUpdateTask, 1000);
 				}
 			}			
 		};
@@ -345,7 +337,11 @@ public class TokenList extends ListActivity {
 	}
 
 	private void fillData() {
-		setListAdapter(new TokenAdapter(this, mTokenDbHelper));
+		
+		if(mtokenAdaptor == null)
+			mtokenAdaptor = new TokenAdapter(this, mTokenDbHelper);
+		
+		setListAdapter(mtokenAdaptor);
 	}
 
 	@Override
@@ -483,14 +479,34 @@ public class TokenList extends ListActivity {
 		try{
 			startActivityForResult(intentQrScan, ZXING_REQUEST_CODE);
 		}catch(ActivityNotFoundException  ex){
+			Log.w("QR Scan", "ZXING is not installed, attempt to direct the user to android market");
 			downloadZxingApp();
 		}
 	}
 
 
 	private void downloadZxingApp() {
-		// TODO MM complete me Auto-generated method stub
+		AlertDialog.Builder installDialog = new AlertDialog.Builder(this);
 		
+		installDialog.setTitle(R.string.install_zxing_title)
+	      .setMessage(R.string.install_zxing_caption)
+	      .setIcon(android.R.drawable.ic_dialog_alert)
+	      .setPositiveButton(R.string.install,
+	          new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int whichButton) {
+	              Intent intent = new Intent(Intent.ACTION_VIEW, 
+	                                         Uri.parse(ZXING_MARKET));
+	              try { startActivity(intent); }
+	              catch (ActivityNotFoundException e) { // if no Market app
+	                intent = new Intent(Intent.ACTION_VIEW,
+	                                    Uri.parse(ZXING_DIRECT));
+	                startActivity(intent);
+	              }
+	            }
+	          }
+	      )
+	      .setNegativeButton(R.string.cancel, null)
+	      .show();
 	}
 
 
@@ -535,11 +551,10 @@ public class TokenList extends ListActivity {
 		IToken token = TokenFactory.CreateToken(cursor);
 		cursor.close();
 		
-		String otp = token.GenerateOtp();
+		String otp = token.generateOtp();
 		
 		if(token instanceof HotpToken)
-			mTokenDbHelper.incrementTokenCount(tokenId);
-		
+			mTokenDbHelper.incrementTokenCount(tokenId);		
 		
 		return otp;
 	}
@@ -596,27 +611,39 @@ public class TokenList extends ListActivity {
 	{
 		private Context mContext;
 		private TokenDbAdapter mDbAdapter;
-		private Cursor mCursor;
+		private List<IToken> mTokens;
 		
 		public TokenAdapter(Context context, TokenDbAdapter dbAdapter){
 			mContext = context;
 			mDbAdapter = dbAdapter;
 			
-			mCursor = mDbAdapter.fetchAllTokens();
-			startManagingCursor(mCursor);
+			Cursor cursor = mDbAdapter.fetchAllTokens();
+			startManagingCursor(cursor);
+			
+			//read all the tokens we have and put them into a list
+			//this will save hitting the db everytime we draw the
+			//ui with an update
+			
+			mTokens = new ArrayList<IToken>();
+			
+			cursor.moveToFirst();
+	        while (!cursor.isAfterLast()) {
+	            mTokens.add(TokenFactory.CreateToken(cursor));
+	            cursor.moveToNext();
+	        }
+			
 		}
 		
 		public int getCount() {			
-			return mCursor.getCount();
+			return mTokens.size();
 		}
 
 		public Object getItem(int position) {
-			return getItemId(position);
+			return mTokens.get(position);
 		}
 
 		public long getItemId(int position) {
-			mCursor.moveToPosition(position);			
-			return mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));	
+			return mTokens.get(position).getId();
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
@@ -629,18 +656,12 @@ public class TokenList extends ListActivity {
 			TextView totpText = (TextView)row.findViewById(R.id.tokenRowTimeTokenOtp);
 			ProgressBar totpProgressBar = (ProgressBar)row.findViewById(R.id.totpTimerProgressbar);
 			
-			mCursor.moveToPosition(position);
 			
-			//cursor values
-			String name = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_NAME));
-			String serial = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL));
-			long tokenId = mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));
-			int type = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE));
-			int totpInterval = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TIME_STEP));
+			IToken currentToken = (IToken)getItem(position);
 			
-			nameText.setText(name);
-			if(serial.length() > 0)
-				serialText.setText(serial);
+			nameText.setText(currentToken.getName());
+			if(currentToken.getSerialNumber().length() > 0)
+				serialText.setText(currentToken.getSerialNumber());
 			else{
 				serialText.setVisibility(4);
 			}
@@ -648,41 +669,33 @@ public class TokenList extends ListActivity {
 			//if the token is a time token, just display the current
 			//value for the token. Event tokens will still need to
 			//be click to display the otp
-			if(type == TokenDbAdapter.TOKEN_TYPE_TIME){
+			if(currentToken.getTokenType() == TokenDbAdapter.TOKEN_TYPE_TIME){
 				tokenImage.setImageResource(R.drawable.clock_24);
 				totpText.setVisibility(View.VISIBLE);
-				totpText.setText(generateOtp(tokenId));
+				totpText.setText(currentToken.generateOtp());
 				
 				totpProgressBar.setVisibility(View.VISIBLE);
 				
 				Date dt = new Date();
-				int curSec = dt.getSeconds();
+				float curSec = (float)dt.getSeconds();
+				int progress;
 				
-				if(totpInterval == 30){
-					int progress = (int)((curSec/60)*100);
-					totpProgressBar.setProgress(progress);
+				if(currentToken.getTimeStep() == 30){
+					
+					if(curSec > 30)
+						curSec = curSec - 30;
+						
+					progress = (int)(100 - ((curSec/30)*100));
 				}else{
-					int progress = (int)((curSec/60)*100);
-					totpProgressBar.setProgress(progress);
+					progress = (int)(100 - ((curSec/60)*100));					
 				}
+				
+				totpProgressBar.setProgress(progress);
 			}
 			else
 				tokenImage.setImageResource(R.drawable.options_24);
 			
 			return row;
-		}
-		
-		private String generateOtp(long tokenId) {		
-			Cursor cursor = mTokenDbHelper.fetchToken(tokenId);
-			IToken token = TokenFactory.CreateToken(cursor);
-			cursor.close();
-			
-			String otp = token.GenerateOtp();
-			
-			if(token instanceof HotpToken)
-				mTokenDbHelper.incrementTokenCount(tokenId);			
-			
-			return otp;
 		}
 	
 	}

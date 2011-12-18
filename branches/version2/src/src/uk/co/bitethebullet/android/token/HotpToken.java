@@ -44,6 +44,7 @@ public class HotpToken implements IToken {
 	private String mSeed;
 	private long mEventCount;
 	private int mOtpLength;
+	private long id;
 		
 	
 	private static final int[] DIGITS_POWER
@@ -59,6 +60,21 @@ public class HotpToken implements IToken {
 		mOtpLength = otpLength;
 	}
 	
+	public int getTimeStep(){
+		return 0;
+	}
+	
+	public long getId(){
+		return this.id;
+	}
+	
+	public void setId(long id){
+		this.id = id;
+	}
+	
+	public int getTokenType(){
+		return TokenDbAdapter.TOKEN_TYPE_EVENT;
+	}
 	
 	public String getName() {
 		return mName;
@@ -70,12 +86,12 @@ public class HotpToken implements IToken {
 	}
 
 
-	public String getSerial() {
+	public String getSerialNumber() {
 		return mSerial;
 	}
 
 
-	public void setSerial(String serial) {
+	public void setSerialNumber(String serial) {
 		this.mSerial = serial;
 	}
 
@@ -110,7 +126,7 @@ public class HotpToken implements IToken {
 	}
 
 
-	public String GenerateOtp() {
+	public String generateOtp() {
 		
 		byte[] counter = new byte[8];
 		long movingFactor = mEventCount;

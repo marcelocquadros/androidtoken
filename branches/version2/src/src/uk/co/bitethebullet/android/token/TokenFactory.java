@@ -35,19 +35,26 @@ public class TokenFactory {
 			return null;
 		}
 		
+		IToken token = null;
+		
 		int tokenType = c.getInt(c.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE));
 		
 		switch(tokenType){
 		
 		case TokenDbAdapter.TOKEN_TYPE_EVENT:
-			return CreateHotpToken(c);
+			token = CreateHotpToken(c);
+			break;
 			
 		case TokenDbAdapter.TOKEN_TYPE_TIME:
-			return CreateTotpToken(c);
+			token = CreateTotpToken(c);
+			break;
 		
 		default:
 			return null;
-		}		
+		}	
+		
+		token.setId(c.getLong(c.getColumnIndex(TokenDbAdapter.KEY_TOKEN_ROWID)));
+		return token;
 	}
 	
 	private static IToken CreateHotpToken(Cursor c){

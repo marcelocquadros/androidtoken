@@ -31,7 +31,7 @@ public class HotpTokenTests extends TestCase {
 	public void testOtpGeneration(){
 		HotpToken token = new HotpToken("mark", "123456789", SEED, 0, 6);
 		
-		String otp = token.GenerateOtp();
+		String otp = token.generateOtp();
 		
 		Assert.assertEquals("755224", otp);
 	}
@@ -39,7 +39,7 @@ public class HotpTokenTests extends TestCase {
 	public void testOtpGeneration2(){
 		HotpToken token = new HotpToken("mark", "123456789", SEED, 1, 6);
 		
-		String otp = token.GenerateOtp();
+		String otp = token.generateOtp();
 		
 		Assert.assertEquals("287082", otp);
 	}
