@@ -34,6 +34,8 @@ import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
 import uk.co.bitethebullet.android.token.util.SeedConvertor;
+import uk.co.bitethebullet.android.token.zxing.IntentIntegrator;
+import uk.co.bitethebullet.android.token.zxing.IntentResult;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -95,11 +97,7 @@ public class TokenList extends ListActivity {
 	
 	private static final String KEY_HAS_PASSED_PIN = "pinValid";
 	private static final String KEY_SELECTED_TOKEN_ID = "selectedTokenId";
-	
-	private static final String ZXING_MARKET = "market://search?q=pname:com.google.zxing.client.android";
-	private static final String ZXING_DIRECT = "https://zxing.googlecode.com/files/BarcodeScanner3.72.apk";
-	private static final int ZXING_REQUEST_CODE = 1;
-	
+		
 	private Boolean mHasPassedPin = false;
 	private Long mSelectedTokenId = Long.parseLong("-1");
 	private Long mTokenToDeleteId = Long.parseLong("-1");
@@ -346,13 +344,22 @@ public class TokenList extends ListActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(requestCode == ZXING_REQUEST_CODE && resultCode == Activity.RESULT_OK){
-			storeOtpAuthUrl(data.getStringExtra("SCAN_RESULT"));
+		
+		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+		if (scanResult != null) {
+			storeOtpAuthUrl(scanResult.getContents());
+	  	}
+		else if(requestCode == ACTIVITY_ADD_TOKEN && resultCode == Activity.RESULT_OK){
+			mtokenAdaptor = null;
+			fillData();
 		}
 	}
 
 	private void storeOtpAuthUrl(String url) {
 		try {
+			
+			Log.d("QR scanned URL", url);
+			
 			ITokenMeta token = parseOtpAuthUrl(getApplicationContext(), url);
 			
 			String hexSeed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(token.getSecretBase32(), SeedConvertor.BASE32_FORMAT), SeedConvertor.HEX_FORMAT);
@@ -471,42 +478,9 @@ public class TokenList extends ListActivity {
 	}
 
 
-	private void scanQR() {
-		Intent intentQrScan = new Intent("com.google.zxing.client.android.SCAN");
-		intentQrScan.putExtra("SCAN_MODE", "QR_CODE_MODE");
-		intentQrScan.putExtra("SAVE_HISTORY", false);
-		
-		try{
-			startActivityForResult(intentQrScan, ZXING_REQUEST_CODE);
-		}catch(ActivityNotFoundException  ex){
-			Log.w("QR Scan", "ZXING is not installed, attempt to direct the user to android market");
-			downloadZxingApp();
-		}
-	}
-
-
-	private void downloadZxingApp() {
-		AlertDialog.Builder installDialog = new AlertDialog.Builder(this);
-		
-		installDialog.setTitle(R.string.install_zxing_title)
-	      .setMessage(R.string.install_zxing_caption)
-	      .setIcon(android.R.drawable.ic_dialog_alert)
-	      .setPositiveButton(R.string.install,
-	          new DialogInterface.OnClickListener() {
-	            public void onClick(DialogInterface dialog, int whichButton) {
-	              Intent intent = new Intent(Intent.ACTION_VIEW, 
-	                                         Uri.parse(ZXING_MARKET));
-	              try { startActivity(intent); }
-	              catch (ActivityNotFoundException e) { // if no Market app
-	                intent = new Intent(Intent.ACTION_VIEW,
-	                                    Uri.parse(ZXING_DIRECT));
-	                startActivity(intent);
-	              }
-	            }
-	          }
-	      )
-	      .setNegativeButton(R.string.cancel, null)
-	      .show();
+	private void scanQR() {		
+		IntentIntegrator integrator = new IntentIntegrator(this);
+		integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
 	}
 
 
@@ -582,6 +556,7 @@ public class TokenList extends ListActivity {
 			if(mTokenToDeleteId > 0){
 				mTokenDbHelper.deleteToken(mTokenToDeleteId);
 				mTokenToDeleteId = Long.parseLong("-1");
+				mtokenAdaptor = null;
 				fillData();
 				removeDialog(DIALOG_DELETE_TOKEN);
 			}
