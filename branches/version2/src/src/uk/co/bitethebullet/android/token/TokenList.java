@@ -60,6 +60,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -162,6 +163,15 @@ public class TokenList extends ListActivity {
         AdRequest adRequest = new AdRequest();
         adRequest.addTestDevice(AdRequest.TEST_EMULATOR);
         adView.loadAd(adRequest);
+        
+        ListView lv = (ListView)findViewById(android.R.id.list);
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+			public boolean onItemLongClick(AdapterView<?> arg0, View v,
+					int pos, long id) {
+				return onLongListItemClick(v,pos,id);
+			}
+		});
     }
     
 
@@ -226,6 +236,30 @@ public class TokenList extends ListActivity {
 			}
 		}
 	};
+	
+	
+	protected boolean onLongListItemClick(View v, int pos, long id) {
+	    Log.i("", "onLongListItemClick id=" + id);
+	    
+	    //prompt the user to see if they want to delete the current
+	    //selected token
+	    Dialog d;
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		
+		Cursor c = mTokenDbHelper.fetchAllTokens();
+		startManagingCursor(c);
+					
+		builder.setTitle(R.string.app_name)
+			   .setMessage("Confirm delete?") //TODO: MM move to resource file
+			   .setIcon(android.R.drawable.ic_dialog_alert)
+			   .setPositiveButton(R.string.dialogPositive, deleteTokenPositiveEvent)
+			   .setNegativeButton(R.string.dialogNegative, null);
+		
+		builder.show();
+	    
+	    
+	    return true;
+	}
 	
 	private Dialog createAlertDialog(int messageId){
 		
