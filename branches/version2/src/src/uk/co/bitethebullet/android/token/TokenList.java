@@ -70,6 +70,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 /**
  * Main entry point into Android Token application
@@ -238,21 +239,29 @@ public class TokenList extends ListActivity {
 	};
 	
 	
-	protected boolean onLongListItemClick(View v, int pos, long id) {
+	protected boolean onLongListItemClick(View v, int pos, final long id) {
 	    Log.i("", "onLongListItemClick id=" + id);
 	    
 	    //prompt the user to see if they want to delete the current
 	    //selected token
-	    Dialog d;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		
 		Cursor c = mTokenDbHelper.fetchAllTokens();
 		startManagingCursor(c);
 					
 		builder.setTitle(R.string.app_name)
-			   .setMessage("Confirm delete?") //TODO: MM move to resource file
+			   .setMessage(R.string.confirmDelete)
 			   .setIcon(android.R.drawable.ic_dialog_alert)
-			   .setPositiveButton(R.string.dialogPositive, deleteTokenPositiveEvent)
+			   .setPositiveButton(R.string.dialogPositive, new DialogInterface.OnClickListener() {				
+					public void onClick(DialogInterface dialog, int which) {						
+						mTokenDbHelper.deleteToken(id);
+						
+						Toast.makeText(getApplicationContext(), R.string.deleted, Toast.LENGTH_SHORT).show();
+						
+						mtokenAdaptor = null;
+						fillData();
+					}
+			   })
 			   .setNegativeButton(R.string.dialogNegative, null);
 		
 		builder.show();
@@ -379,9 +388,13 @@ public class TokenList extends ListActivity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
+		Log.d("activityResult", "Activity Result received, request code:" + requestCode + " resultCode:" + resultCode);
+		
 		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 		if (scanResult != null) {
 			storeOtpAuthUrl(scanResult.getContents());
+			mtokenAdaptor = null;
+			fillData();
 	  	}
 		else if(requestCode == ACTIVITY_ADD_TOKEN && resultCode == Activity.RESULT_OK){
 			mtokenAdaptor = null;

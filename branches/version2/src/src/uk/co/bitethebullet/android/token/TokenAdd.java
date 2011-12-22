@@ -276,14 +276,8 @@ public class TokenAdd extends Activity {
 			
 			if(name.length() == 0){
 				isValid = false;
-				showDialog(DIALOG_STEP1_NO_NAME);
-				
+				showDialog(DIALOG_STEP1_NO_NAME);				
 			}
-			//make the serial number an optional parameter
-//			else if(serial.length() == 0){
-//				isValid = false;
-//				showDialog(DIALOG_STEP1_NO_SERIAL);
-//			}
 			
 			if(isValid){
 				//store step 1 values in members vars
@@ -378,6 +372,8 @@ public class TokenAdd extends Activity {
 				db.open();
 				db.createToken(mName, mSerial, seed, mTokenType, mOtpLength, mTimeStep);
 				db.close();
+				
+				setResult(RESULT_OK);
 				
 				finish();
 			}

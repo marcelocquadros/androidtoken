@@ -84,6 +84,8 @@ public final class R {
         public static final int app_name=0x7f050001;
         public static final int btnAddStep2=0x7f05000b;
         public static final int cancel=0x7f05002c;
+        public static final int confirmDelete=0x7f050030;
+        public static final int deleted=0x7f050031;
         public static final int dialogNegative=0x7f050016;
         public static final int dialogPositive=0x7f050015;
         public static final int install=0x7f05002d;
