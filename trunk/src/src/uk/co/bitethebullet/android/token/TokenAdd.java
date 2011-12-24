@@ -19,6 +19,7 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
@@ -41,6 +42,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
+import uk.co.bitethebullet.android.token.util.*;
+
 public class TokenAdd extends Activity {
 
 	private static final int DIALOG_STEP1_NO_NAME = 0;
@@ -58,6 +61,7 @@ public class TokenAdd extends Activity {
 	private static final String KEY_TIME_STEP = "timeStep";
 	private static final String KEY_NAME = "tokenName";
 	private static final String KEY_SERIAL = "tokenSerial";
+	private static final String KEY_SEED_FORMAT = "tokenSeedFormat";
 	
 	//current state of the activity
 	private int mCurrentActivityStep = ACTIVITY_STEP_ONE;
@@ -68,6 +72,7 @@ public class TokenAdd extends Activity {
 	private int mTokenType;
 	private int mOtpLength;
 	private int mTimeStep;
+	private int mTokenSeedFormat;
 	
 	private static final int RANDOM_SEED_LENGTH = 160;
 	
@@ -80,6 +85,7 @@ public class TokenAdd extends Activity {
 		loadSpinnerArrayData(R.id.tokenTypeSpinner, R.array.tokenType);
 		loadSpinnerArrayData(R.id.tokenOtpSpinner, R.array.otpLength);
 		loadSpinnerArrayData(R.id.tokenTimeStepSpinner, R.array.timeStep);
+		loadSpinnerArrayData(R.id.tokenSeedFormat, R.array.tokenSeedFormatType);
 		
 		if(savedInstanceState != null){
 			mCurrentActivityStep = savedInstanceState.getInt(KEY_ACTIVITY_STATE);
@@ -124,6 +130,9 @@ public class TokenAdd extends Activity {
 		
 		Spinner tokenType = (Spinner)findViewById(R.id.tokenTypeSpinner);
 		tokenType.setOnItemSelectedListener(tokenTypeSelected);
+		
+		Spinner tokenSeedFormat = (Spinner)findViewById(R.id.tokenSeedFormat);
+		tokenSeedFormat.setOnItemSelectedListener(tokenSeedFormatSelected);
 	}
 	
 	
@@ -178,6 +187,35 @@ public class TokenAdd extends Activity {
 		}
 		
 	};
+	
+	
+	private OnItemSelectedListener tokenSeedFormatSelected = new OnItemSelectedListener() {
+
+		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			
+			EditText tokenSeedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
+			String seed = tokenSeedEdit.getText().toString();
+			
+			try{				
+				seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, mTokenSeedFormat), arg2);
+			}
+			catch(IOException ex){
+				//todo: MM cancel the change of seed format, we have
+				//some error
+			}
+			
+			tokenSeedEdit.setText(seed);
+			mTokenSeedFormat = arg2;			
+		}
+
+		public void onNothingSelected(AdapterView<?> arg0) {
+			// ignore not required			
+		}
+		
+	};
+	
+
 	
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -238,11 +276,7 @@ public class TokenAdd extends Activity {
 			
 			if(name.length() == 0){
 				isValid = false;
-				showDialog(DIALOG_STEP1_NO_NAME);
-				
-			}else if(serial.length() == 0){
-				isValid = false;
-				showDialog(DIALOG_STEP1_NO_SERIAL);
+				showDialog(DIALOG_STEP1_NO_NAME);				
 			}
 			
 			if(isValid){
@@ -267,7 +301,19 @@ public class TokenAdd extends Activity {
 			
 			RadioButton rbPassword = (RadioButton)findViewById(R.id.rbSeedPassword);
 			String seed = ((EditText)findViewById(R.id.tokenSeedEdit)).getText().toString();
-
+			
+			try {
+				//if the seed is not in hex format convert this to hex
+				//then make sure the length is 
+				if(mTokenSeedFormat == 1){
+					//base32
+					seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, 1), 0);
+				}else if(mTokenSeedFormat == 2){
+					//base 64
+					seed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(seed, 2), 0);
+				}
+			} catch (IOException e) {
+			}
 			
 			if(seed.length() == 0){
 				isValid = false;
@@ -280,7 +326,7 @@ public class TokenAdd extends Activity {
 				//validate the length
 				int seedLength = seed.length();
 				
-				if(seedLength != 32 & seedLength != 40){
+				if(seedLength < 32){
 					isValid = false;
 					showDialog(DIALOG_STEP2_INVALID_SEED);
 					return;
@@ -327,6 +373,8 @@ public class TokenAdd extends Activity {
 				db.createToken(mName, mSerial, seed, mTokenType, mOtpLength, mTimeStep);
 				db.close();
 				
+				setResult(RESULT_OK);
+				
 				finish();
 			}
 			
@@ -357,9 +405,20 @@ public class TokenAdd extends Activity {
 		public void onClick(View v) {
 			RadioButton rb = (RadioButton)v;
 			
+			//if we are entering the seed manually/randomly we should display the
+			//the format option to allow the user to enter as hex/base64/base32
+			
 			if(rb.getId() == R.id.rbSeedRandom){
 				EditText seedEdit = (EditText)findViewById(R.id.tokenSeedEdit);
 				seedEdit.setText(HotpToken.generateNewSeed(RANDOM_SEED_LENGTH));
+			}
+			
+			Spinner tokenSeedFormat = (Spinner)findViewById(R.id.tokenSeedFormat);
+			
+			if(rb.getId() == R.id.rbSeedManual || rb.getId() == R.id.rbSeedRandom){
+				tokenSeedFormat.setEnabled(true);
+			}else{
+				tokenSeedFormat.setEnabled(false);
 			}
 		}
 	};

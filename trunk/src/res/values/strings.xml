@@ -39,4 +39,17 @@
 <string name="pinRemoveSubmit">Remove</string>
 <string name="mainLogin">Login</string>
 <string name="otpDialogTitle">One Time Password</string>
+<string name="tokenSeedFormat">Input Format</string>
+<string name="menu_scan">Scan QR</string>
+<string name="otpAuthUrlInvalid">otpauth url is not valid</string>
+<string name="otpAuthTokenTypeInvalid">Invalid token type</string>
+<string name="otpAuthMissingCounterParameter">The counter parameter is required when creating an HOTP token</string>
+<string name="cancel">Cancel</string>
+<string name="install">Install</string>
+<string name="install_zxing_title">Install Barcode Scanner?</string>
+<string name="install_zxing_caption">To read barcode you need need install the ZXING barcode scanner app.</string>
+<string name="confirmDelete">Are you sure you want to delete this token?</string>
+<string name="toastDeleted">Token Deleted</string>
+<string name="toastAdded">Token Added</string>
+<string name="toastInvalidQr">Invalid QR code</string>
 </resources>
