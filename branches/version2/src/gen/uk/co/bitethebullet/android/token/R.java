@@ -17,11 +17,11 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int android50=0x7f020000;
-        public static final int androidtoken=0x7f020001;
-        public static final int clock_32=0x7f020002;
-        public static final int events_32=0x7f020003;
-        public static final int icon=0x7f020004;
+        public static final int add=0x7f020000;
+        public static final int android50=0x7f020001;
+        public static final int androidtoken=0x7f020002;
+        public static final int icon=0x7f020003;
+        public static final int xclock=0x7f020004;
     }
     public static final class id {
         public static final int btnAddStep2=0x7f06001d;
@@ -85,7 +85,6 @@ public final class R {
         public static final int btnAddStep2=0x7f05000b;
         public static final int cancel=0x7f05002c;
         public static final int confirmDelete=0x7f050030;
-        public static final int deleted=0x7f050031;
         public static final int dialogNegative=0x7f050016;
         public static final int dialogPositive=0x7f050015;
         public static final int install=0x7f05002d;
@@ -114,6 +113,9 @@ public final class R {
         public static final int rbSeedManual=0x7f050010;
         public static final int rbSeedPassword=0x7f050012;
         public static final int rbSeedRandom=0x7f050011;
+        public static final int toastAdded=0x7f050032;
+        public static final int toastDeleted=0x7f050031;
+        public static final int toastInvalidQr=0x7f050033;
         public static final int tokenAddComplete=0x7f050014;
         public static final int tokenAddDialogInvalidSeed=0x7f05001a;
         public static final int tokenAddDialogNoName=0x7f050017;

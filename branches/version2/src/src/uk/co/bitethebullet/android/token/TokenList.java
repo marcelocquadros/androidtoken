@@ -256,7 +256,7 @@ public class TokenList extends ListActivity {
 					public void onClick(DialogInterface dialog, int which) {						
 						mTokenDbHelper.deleteToken(id);
 						
-						Toast.makeText(getApplicationContext(), R.string.deleted, Toast.LENGTH_SHORT).show();
+						Toast.makeText(getApplicationContext(), R.string.toastDeleted, Toast.LENGTH_SHORT).show();
 						
 						mtokenAdaptor = null;
 						fillData();
@@ -389,20 +389,30 @@ public class TokenList extends ListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		Log.d("activityResult", "Activity Result received, request code:" + requestCode + " resultCode:" + resultCode);
+		int toastRId = 0;
 		
 		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 		if (scanResult != null) {
-			storeOtpAuthUrl(scanResult.getContents());
-			mtokenAdaptor = null;
-			fillData();
+			
+			if(storeOtpAuthUrl(scanResult.getContents())){
+				mtokenAdaptor = null;
+				fillData();				
+				toastRId = R.string.toastAdded;
+			}else{
+				toastRId = R.string.toastInvalidQr;
+			}
 	  	}
 		else if(requestCode == ACTIVITY_ADD_TOKEN && resultCode == Activity.RESULT_OK){
 			mtokenAdaptor = null;
 			fillData();
+			toastRId = R.string.toastAdded;
 		}
+		
+		if(toastRId > 0)
+			Toast.makeText(getApplicationContext(), toastRId, Toast.LENGTH_SHORT).show();
 	}
 
-	private void storeOtpAuthUrl(String url) {
+	private boolean storeOtpAuthUrl(String url) {
 		try {
 			
 			Log.d("QR scanned URL", url);
@@ -416,10 +426,14 @@ public class TokenList extends ListActivity {
 			db.createToken(token.getName(), "", hexSeed, token.getTokenType(), token.getDigits(), token.getTimeStep());
 			db.close();
 			
+			return true;
+			
 		} catch (OtpAuthUriException e) {
 			Log.e(TokenList.class.getName(), e.getMessage(), e);
+			return false;
 		}catch(IOException e){
 			Log.e(TokenList.class.getName(), e.getMessage(), e);
+			return false;
 		}
 	}
 
@@ -685,14 +699,16 @@ public class TokenList extends ListActivity {
 			if(currentToken.getSerialNumber().length() > 0)
 				serialText.setText(currentToken.getSerialNumber());
 			else{
-				serialText.setVisibility(4);
+				TextView serialCaption = (TextView)row.findViewById(R.id.tokenrowtextserialcaption);
+				serialCaption.setVisibility(View.GONE);
+				serialText.setVisibility(View.GONE);
 			}
 			
 			//if the token is a time token, just display the current
 			//value for the token. Event tokens will still need to
 			//be click to display the otp
 			if(currentToken.getTokenType() == TokenDbAdapter.TOKEN_TYPE_TIME){
-				tokenImage.setImageResource(R.drawable.clock_32);
+				tokenImage.setImageResource(R.drawable.xclock);
 				totpText.setVisibility(View.VISIBLE);
 				totpText.setText(currentToken.generateOtp());
 				
@@ -715,7 +731,7 @@ public class TokenList extends ListActivity {
 				totpProgressBar.setProgress(progress);
 			}
 			else
-				tokenImage.setImageResource(R.drawable.events_32);
+				tokenImage.setImageResource(R.drawable.add);
 			
 			return row;
 		}
