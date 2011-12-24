@@ -39,7 +39,7 @@ public class TotpTokenTests extends TestCase {
 		
 		System.out.println(time.getTime().toString());
 		
-		String otp = token.GenerateOtp(time);
+		String otp = token.generateOtp(time);
 		
 		Assert.assertEquals("050471", otp);
 	}
@@ -51,19 +51,21 @@ public class TotpTokenTests extends TestCase {
 		Calendar time = Calendar.getInstance();
 		time.set(2009, 1, 13, 23, 31, 30);	
 		
-		String otp = token.GenerateOtp(time);
+		String otp = token.generateOtp(time);
 		
 		Assert.assertEquals("005924", otp);
 	}
 	
 	public void testOtp3(){
+		//todo: MM this test fails, double check that the expected value should
+		//be then fix as required!!
 		//utc = 2033-05-18T03:33:20
 		TotpToken token = new TotpToken("markTest", "1234", SEED, 30, 6);
 		
 		Calendar time = Calendar.getInstance();
 		time.set(2033, 4, 18, 3, 33, 20);	
 		
-		String otp = token.GenerateOtp(time);
+		String otp = token.generateOtp(time);
 		
 		Assert.assertEquals("279037", otp);
 	}

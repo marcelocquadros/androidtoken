@@ -19,31 +19,58 @@
  */
 package uk.co.bitethebullet.android.token;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.crypto.spec.IvParameterSpec;
+
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+
+import uk.co.bitethebullet.android.token.util.SeedConvertor;
+import uk.co.bitethebullet.android.token.zxing.IntentIntegrator;
+import uk.co.bitethebullet.android.token.zxing.IntentResult;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 /**
  * Main entry point into Android Token application
@@ -64,6 +91,7 @@ public class TokenList extends ListActivity {
 	private static final int MENU_PIN_CHANGE_ID = Menu.FIRST + 1;
 	private static final int MENU_PIN_REMOVE_ID = Menu.FIRST + 2;
 	private static final int MENU_DELETE_TOKEN_ID = Menu.FIRST + 3;
+	private static final int MENU_SCAN_QR = Menu.FIRST + 4;
 	
 	private static final int DIALOG_INVALID_PIN = 0;
 	private static final int DIALOG_OTP = 1;
@@ -71,15 +99,21 @@ public class TokenList extends ListActivity {
 	
 	private static final String KEY_HAS_PASSED_PIN = "pinValid";
 	private static final String KEY_SELECTED_TOKEN_ID = "selectedTokenId";
-	
+		
 	private Boolean mHasPassedPin = false;
 	private Long mSelectedTokenId = Long.parseLong("-1");
 	private Long mTokenToDeleteId = Long.parseLong("-1");
 	private Timer mTimer = null;
 	private TokenDbAdapter mTokenDbHelper = null;
+	private Handler mHandler;
+	private Runnable mOtpUpdateTask;
 	
 	private LinearLayout mMainPin;
 	private LinearLayout mMainList;
+	
+	private TokenAdapter mtokenAdaptor = null;
+	
+	private AdView adView;
 	
     /** Called when the activity is first created. */
     @Override
@@ -114,13 +148,67 @@ public class TokenList extends ListActivity {
         	mHasPassedPin = true;
         	fillData();
         }
+        
+        mHandler = new Handler();
+        
+        
+        //render the ad to the bottom of the layout
+        adView = new AdView(this, AdSize.BANNER, "a14ee3663c2a098");
+        RelativeLayout layout = (RelativeLayout)findViewById(R.id.parentLayout);
+        
+        RelativeLayout.LayoutParams relLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT,
+        																				LayoutParams.WRAP_CONTENT);
+        relLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        
+        layout.addView(adView, relLayoutParams);
+        AdRequest adRequest = new AdRequest();
+        adRequest.addTestDevice(AdRequest.TEST_EMULATOR);
+        adView.loadAd(adRequest);
+        
+        ListView lv = (ListView)findViewById(android.R.id.list);
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+			public boolean onItemLongClick(AdapterView<?> arg0, View v,
+					int pos, long id) {
+				return onLongListItemClick(v,pos,id);
+			}
+		});
     }
     
 
 	@Override
 	protected void onDestroy() {
+		adView.destroy();
 		super.onDestroy();
 		mTokenDbHelper.close();
+	}
+	
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		Runnable otpUpdate = new Runnable(){
+
+			public void run() {				
+				if(mOtpUpdateTask == this){
+					TokenList.this.fillData();
+					
+					mHandler.postDelayed(mOtpUpdateTask, 1000);
+				}
+			}			
+		};
+		
+		mOtpUpdateTask = otpUpdate;
+		mOtpUpdateTask.run();
+	}
+
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		mOtpUpdateTask = null;
 	}
 
 
@@ -130,7 +218,7 @@ public class TokenList extends ListActivity {
 		outState.putBoolean(KEY_HAS_PASSED_PIN, mHasPassedPin);
 		outState.putLong(KEY_SELECTED_TOKEN_ID, mSelectedTokenId);
 	}
-
+	
 	private OnClickListener validatePin = new 	OnClickListener() {
 		
 		public void onClick(View v) {
@@ -149,6 +237,38 @@ public class TokenList extends ListActivity {
 			}
 		}
 	};
+	
+	
+	protected boolean onLongListItemClick(View v, int pos, final long id) {
+	    Log.i("", "onLongListItemClick id=" + id);
+	    
+	    //prompt the user to see if they want to delete the current
+	    //selected token
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		
+		Cursor c = mTokenDbHelper.fetchAllTokens();
+		startManagingCursor(c);
+					
+		builder.setTitle(R.string.app_name)
+			   .setMessage(R.string.confirmDelete)
+			   .setIcon(android.R.drawable.ic_dialog_alert)
+			   .setPositiveButton(R.string.dialogPositive, new DialogInterface.OnClickListener() {				
+					public void onClick(DialogInterface dialog, int which) {						
+						mTokenDbHelper.deleteToken(id);
+						
+						Toast.makeText(getApplicationContext(), R.string.toastDeleted, Toast.LENGTH_SHORT).show();
+						
+						mtokenAdaptor = null;
+						fillData();
+					}
+			   })
+			   .setNegativeButton(R.string.dialogNegative, null);
+		
+		builder.show();
+	    
+	    
+	    return true;
+	}
 	
 	private Dialog createAlertDialog(int messageId){
 		
@@ -258,14 +378,125 @@ public class TokenList extends ListActivity {
 	}
 
 	private void fillData() {
-		setListAdapter(new TokenAdapter(this, mTokenDbHelper));
+		
+		if(mtokenAdaptor == null)
+			mtokenAdaptor = new TokenAdapter(this, mTokenDbHelper);
+		
+		setListAdapter(mtokenAdaptor);
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		fillData();
+		
+		Log.d("activityResult", "Activity Result received, request code:" + requestCode + " resultCode:" + resultCode);
+		int toastRId = 0;
+		
+		IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+		if (scanResult != null) {
+			
+			if(storeOtpAuthUrl(scanResult.getContents())){
+				mtokenAdaptor = null;
+				fillData();				
+				toastRId = R.string.toastAdded;
+			}else{
+				toastRId = R.string.toastInvalidQr;
+			}
+	  	}
+		else if(requestCode == ACTIVITY_ADD_TOKEN && resultCode == Activity.RESULT_OK){
+			mtokenAdaptor = null;
+			fillData();
+			toastRId = R.string.toastAdded;
+		}
+		
+		if(toastRId > 0)
+			Toast.makeText(getApplicationContext(), toastRId, Toast.LENGTH_SHORT).show();
 	}
+
+	private boolean storeOtpAuthUrl(String url) {
+		try {
+			
+			Log.d("QR scanned URL", url);
+			
+			ITokenMeta token = parseOtpAuthUrl(getApplicationContext(), url);
+			
+			String hexSeed = SeedConvertor.ConvertFromBA(SeedConvertor.ConvertFromEncodingToBA(token.getSecretBase32(), SeedConvertor.BASE32_FORMAT), SeedConvertor.HEX_FORMAT);
+			
+			TokenDbAdapter db = new TokenDbAdapter(this.getBaseContext());
+			db.open();
+			db.createToken(token.getName(), "", hexSeed, token.getTokenType(), token.getDigits(), token.getTimeStep());
+			db.close();
+			
+			return true;
+			
+		} catch (OtpAuthUriException e) {
+			Log.e(TokenList.class.getName(), e.getMessage(), e);
+			return false;
+		}catch(IOException e){
+			Log.e(TokenList.class.getName(), e.getMessage(), e);
+			return false;
+		}
+	}
+
+
+	public static ITokenMeta parseOtpAuthUrl(Context context, String url) throws OtpAuthUriException {
+		
+		int tokenType;
+		String tokenName;
+		String secret = null;
+		int digits = 6;
+		int counter = 0;
+		int period = 30;
+		boolean hasCounterParameter = false;
+				
+		if(!url.startsWith("otpauth://")){
+			//not a valid otpauth url
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthUrlInvalid));
+			throw new OtpAuthUriException();
+		}
+		
+		String tokenTypeString = url.substring(10, url.indexOf("/", 10));
+		
+		if(tokenTypeString.equals("hotp")){
+			tokenType = TokenMetaData.HOTP_TOKEN;
+		}else if(tokenTypeString.equals("totp")){
+			tokenType = TokenMetaData.TOTP_TOKEN;
+		}else{
+			//the token type parameter is not valid
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthTokenTypeInvalid));
+			throw new OtpAuthUriException();
+		}
+		
+		tokenName = url.substring(url.indexOf("/", 10) + 1, url.indexOf("?", 10));
+		
+		String[] parameters = url.substring(url.indexOf("?") + 1).split("&");
+		
+		for(int i = 0; i < parameters.length; i++){
+			String[] paraDetail = parameters[i].split("=");
+			
+			//read the parameter and work out if its
+			//a valid parameter, if not just ignore
+			if(paraDetail[0].equals("secret")){
+				secret = paraDetail[1];
+			}else if(paraDetail[0].equals("digits")){
+				digits = Integer.parseInt(paraDetail[1]);
+			}else if(paraDetail[0].equals("counter")){
+				counter = Integer.parseInt(paraDetail[1]);
+				hasCounterParameter = true;
+			}else if(paraDetail[0].equals("period")){
+				period = Integer.parseInt(paraDetail[1]);
+			}
+		}
+		
+		if(tokenType == TokenMetaData.HOTP_TOKEN && !hasCounterParameter){
+			//when the token is a hotp token it must have the counter
+			//parameter supplied otherwise we should throw an error
+			//throw new OtpAuthUriException(context.getString(R.string.otpAuthMissingCounterParameter));
+			throw new OtpAuthUriException();
+		}
+		
+		return new TokenMetaData(tokenName, tokenType, secret, digits, period, counter);
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -274,6 +505,7 @@ public class TokenList extends ListActivity {
 		menu.add(0, MENU_PIN_CHANGE_ID, 1, R.string.menu_pin_change).setIcon(android.R.drawable.ic_lock_lock);
 		menu.add(0, MENU_PIN_REMOVE_ID, 2, R.string.menu_pin_remove).setIcon(android.R.drawable.ic_menu_delete);
 		menu.add(0, MENU_DELETE_TOKEN_ID, 3, R.string.menu_delete_token).setIcon(android.R.drawable.ic_menu_delete);
+		menu.add(0, MENU_SCAN_QR, 4, R.string.menu_scan).setIcon(android.R.drawable.ic_menu_camera);
 		return true;
 	}
 
@@ -297,9 +529,19 @@ public class TokenList extends ListActivity {
 		case MENU_DELETE_TOKEN_ID:
 			showDialog(DIALOG_DELETE_TOKEN);
 			return true;
+			
+		case MENU_SCAN_QR:
+			scanQR();
+			return true;
 		}
 		
 		return super.onMenuItemSelected(featureId, item);
+	}
+
+
+	private void scanQR() {		
+		IntentIntegrator integrator = new IntentIntegrator(this);
+		integrator.initiateScan(IntentIntegrator.QR_CODE_TYPES);
 	}
 
 
@@ -344,11 +586,10 @@ public class TokenList extends ListActivity {
 		IToken token = TokenFactory.CreateToken(cursor);
 		cursor.close();
 		
-		String otp = token.GenerateOtp();
+		String otp = token.generateOtp();
 		
 		if(token instanceof HotpToken)
-			mTokenDbHelper.incrementTokenCount(tokenId);
-		
+			mTokenDbHelper.incrementTokenCount(tokenId);		
 		
 		return otp;
 	}
@@ -376,6 +617,7 @@ public class TokenList extends ListActivity {
 			if(mTokenToDeleteId > 0){
 				mTokenDbHelper.deleteToken(mTokenToDeleteId);
 				mTokenToDeleteId = Long.parseLong("-1");
+				mtokenAdaptor = null;
 				fillData();
 				removeDialog(DIALOG_DELETE_TOKEN);
 			}
@@ -405,49 +647,91 @@ public class TokenList extends ListActivity {
 	{
 		private Context mContext;
 		private TokenDbAdapter mDbAdapter;
-		private Cursor mCursor;
+		private List<IToken> mTokens;
 		
 		public TokenAdapter(Context context, TokenDbAdapter dbAdapter){
 			mContext = context;
 			mDbAdapter = dbAdapter;
 			
-			mCursor = mDbAdapter.fetchAllTokens();
-			startManagingCursor(mCursor);
+			Cursor cursor = mDbAdapter.fetchAllTokens();
+			startManagingCursor(cursor);
+			
+			//read all the tokens we have and put them into a list
+			//this will save hitting the db everytime we draw the
+			//ui with an update
+			
+			mTokens = new ArrayList<IToken>();
+			
+			cursor.moveToFirst();
+	        while (!cursor.isAfterLast()) {
+	            mTokens.add(TokenFactory.CreateToken(cursor));
+	            cursor.moveToNext();
+	        }
+			
 		}
 		
 		public int getCount() {			
-			return mCursor.getCount();
+			return mTokens.size();
 		}
 
 		public Object getItem(int position) {
-			return getItemId(position);
+			return mTokens.get(position);
 		}
 
 		public long getItemId(int position) {
-			mCursor.moveToPosition(position);			
-			return mCursor.getLong(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_ROWID));	
+			return mTokens.get(position).getId();
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
 			LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			View row =  inflater.inflate(R.layout.token_list_row, null);
+			View row =  inflater.inflate(R.layout.token_list_row, null);		
 			
-			//view controls
 			TextView nameText = (TextView)row.findViewById(R.id.tokenrowtextname);
 			TextView serialText = (TextView)row.findViewById(R.id.tokenrowtextserial);
-			TextView typeText = (TextView)row.findViewById(R.id.tokenrowtexttype);
+			ImageView tokenImage = (ImageView)row.findViewById(R.id.ivTokenIcon);
+			TextView totpText = (TextView)row.findViewById(R.id.tokenRowTimeTokenOtp);
+			ProgressBar totpProgressBar = (ProgressBar)row.findViewById(R.id.totpTimerProgressbar);
 			
-			mCursor.moveToPosition(position);
 			
-			//cursor values
-			String name = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_NAME));
-			String serial = mCursor.getString(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_SERIAL));
-			String type = mCursor.getInt(mCursor.getColumnIndexOrThrow(TokenDbAdapter.KEY_TOKEN_TYPE)) == TokenDbAdapter.TOKEN_TYPE_EVENT ?
-						  "Event Token" : "Time Token";
+			IToken currentToken = (IToken)getItem(position);
 			
-			nameText.setText(name);
-			serialText.setText(serial);
-			typeText.setText(type);
+			nameText.setText(currentToken.getName());
+			if(currentToken.getSerialNumber().length() > 0)
+				serialText.setText(currentToken.getSerialNumber());
+			else{
+				TextView serialCaption = (TextView)row.findViewById(R.id.tokenrowtextserialcaption);
+				serialCaption.setVisibility(View.GONE);
+				serialText.setVisibility(View.GONE);
+			}
+			
+			//if the token is a time token, just display the current
+			//value for the token. Event tokens will still need to
+			//be click to display the otp
+			if(currentToken.getTokenType() == TokenDbAdapter.TOKEN_TYPE_TIME){
+				tokenImage.setImageResource(R.drawable.xclock);
+				totpText.setVisibility(View.VISIBLE);
+				totpText.setText(currentToken.generateOtp());
+				
+				totpProgressBar.setVisibility(View.VISIBLE);
+				
+				Date dt = new Date();
+				float curSec = (float)dt.getSeconds();
+				int progress;
+				
+				if(currentToken.getTimeStep() == 30){
+					
+					if(curSec > 30)
+						curSec = curSec - 30;
+						
+					progress = (int)(100 - ((curSec/30)*100));
+				}else{
+					progress = (int)(100 - ((curSec/60)*100));					
+				}
+				
+				totpProgressBar.setProgress(progress);
+			}
+			else
+				tokenImage.setImageResource(R.drawable.add);
 			
 			return row;
 		}

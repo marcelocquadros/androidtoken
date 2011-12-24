@@ -11,4 +11,9 @@
 <string-array name="timeStep"><item>30 seconds</item>
 <item>60 seconds</item>
 </string-array>
+<string-array name="tokenSeedFormatType">
+    <item >Hex</item>
+    <item >Base 32</item>
+    <item >Base 64</item>
+</string-array>
 </resources>
