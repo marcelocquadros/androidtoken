@@ -359,7 +359,13 @@ public class TokenList extends ListActivity {
 		
 		@Override
 		public void run() {
-			mActivity.dismissDialog(DIALOG_OTP);			
+			try
+			{
+				mActivity.dismissDialog(DIALOG_OTP);
+			}
+			catch(IllegalArgumentException ex){
+				
+			}
 		}
 		
 	}
