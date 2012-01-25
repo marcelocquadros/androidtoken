@@ -59,6 +59,7 @@ public class ParseUrlTests extends InstrumentationTestCase {
 		Assert.assertEquals(TokenMetaData.HOTP_TOKEN, token.getTokenType());
 	}
 	
+	
 	public void testNotOathUrl(){
 		String url = "http://www.bitethebullet.co.uk";
 		

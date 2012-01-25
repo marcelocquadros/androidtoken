@@ -158,6 +158,10 @@ public class TokenDbAdapter {
     	mDb.execSQL("UPDATE token SET eventcount = eventcount + 1 WHERE _id = " + tokenId);
     }
     
+    public void setTokenCounter(long tokenId, int eventCounter){
+    	mDb.execSQL("UPDATE token SET eventcount = " + eventCounter + "  WHERE _id = " + tokenId);
+    }
+    
     public Cursor fetchToken(long tokenId){
     	Cursor c = mDb.query(DATABASE_TOKEN_TABLE,
     						 new String[] {KEY_TOKEN_ROWID, KEY_TOKEN_NAME, KEY_TOKEN_SERIAL, KEY_TOKEN_SEED, 
