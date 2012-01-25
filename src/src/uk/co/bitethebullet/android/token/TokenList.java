@@ -429,7 +429,14 @@ public class TokenList extends ListActivity {
 			
 			TokenDbAdapter db = new TokenDbAdapter(this.getBaseContext());
 			db.open();
-			db.createToken(token.getName(), "", hexSeed, token.getTokenType(), token.getDigits(), token.getTimeStep());
+			long tokenId = db.createToken(token.getName(), "", hexSeed, token.getTokenType(), token.getDigits(), token.getTimeStep());
+			
+			//if we have created HOTP and counter is greater
+			//than zero we need to set the token to this in the db
+			if(token.getTokenType() == TokenMetaData.HOTP_TOKEN && token.getCounter() > 0){
+				db.setTokenCounter(tokenId, token.getCounter());
+			}
+			
 			db.close();
 			
 			return true;
